@@ -216,6 +216,7 @@
                 <input type="datetime-local" id="baseTime" />
                 <button class="btn" id="currentTimeBtn" onclick="setCurrentTime()">使用当前时间</button>
                 <button class="btn" id="updateBtn" onclick="updateComparison()">更新对比</button>
+                <button class="btn" id="shareBtn" onclick="shareCurrentSettings()">分享链接</button>
             </div>
         </div>
 
@@ -247,6 +248,8 @@
                 addedTimezonesTitle: '已添加的时区:',
                 removeBtn: '移除',
                 noTimezoneMessage: '请添加时区进行对比',
+                shareBtn: '分享链接',
+                shareLinkCopied: '分享链接已复制到剪贴板！',
                 time: '时间',
                 date: '日期',
                 utcOffset: 'UTC偏移',
@@ -268,6 +271,8 @@
                 addedTimezonesTitle: 'Added Timezones:',
                 removeBtn: 'Remove',
                 noTimezoneMessage: 'Please add timezones for comparison',
+                shareBtn: 'Share Link',
+                shareLinkCopied: 'Share link copied to clipboard!',
                 time: 'Time',
                 date: 'Date',
                 utcOffset: 'UTC Offset',
@@ -289,6 +294,8 @@
                 addedTimezonesTitle: '追加されたタイムゾーン:',
                 removeBtn: '削除',
                 noTimezoneMessage: '比較するタイムゾーンを追加してください',
+                shareBtn: 'リンクを共有',
+                shareLinkCopied: '共有リンクがクリップボードにコピーされました！',
                 time: '時間',
                 date: '日付',
                 utcOffset: 'UTC オフセット',
@@ -310,6 +317,8 @@
                 addedTimezonesTitle: '추가된 시간대:',
                 removeBtn: '제거',
                 noTimezoneMessage: '비교할 시간대를 추가해주세요',
+                shareBtn: '링크 공유',
+                shareLinkCopied: '공유 링크가 클립보드에 복사되었습니다!',
                 time: '시간',
                 date: '날짜',
                 utcOffset: 'UTC 오프셋',
@@ -331,6 +340,8 @@
                 addedTimezonesTitle: 'Hinzugefügte Zeitzonen:',
                 removeBtn: 'Entfernen',
                 noTimezoneMessage: 'Bitte fügen Sie Zeitzonen zum Vergleich hinzu',
+                shareBtn: 'Link teilen',
+                shareLinkCopied: 'Freigabe-Link in die Zwischenablage kopiert!',
                 time: 'Zeit',
                 date: 'Datum',
                 utcOffset: 'UTC-Versatz',
@@ -352,6 +363,8 @@
                 addedTimezonesTitle: 'Fuseaux Horaires Ajoutés:',
                 removeBtn: 'Supprimer',
                 noTimezoneMessage: 'Veuillez ajouter des fuseaux horaires pour la comparaison',
+                shareBtn: 'Partager le lien',
+                shareLinkCopied: 'Lien de partage copié dans le presse-papiers!',
                 time: 'Heure',
                 date: 'Date',
                 utcOffset: 'Décalage UTC',
@@ -384,6 +397,7 @@
             document.getElementById('baseTimeLabel').textContent = t.baseTimeLabel;
             document.getElementById('currentTimeBtn').textContent = t.currentTimeBtn;
             document.getElementById('updateBtn').textContent = t.updateBtn;
+            document.getElementById('shareBtn').textContent = t.shareBtn;
             
             // 更新已添加时区标题
             const timezoneCount = selectedTimezones.length;
@@ -1495,7 +1509,7 @@
         function updateComparison() {
             const baseTimeInput = document.getElementById('baseTime').value;
             if (!baseTimeInput) {
-                alert(translations[currentLanguage].noTimezoneMessage || '请先设置基准时间！');
+                // 如果没有基准时间，静默返回，不显示alert
                 return;
             }
 
@@ -1667,11 +1681,114 @@
         
 
 
+        // URL查询参数支持
+        function parseURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // 支持的参数：
+            // ?lang=en - 设置语言
+            // ?timezones=Asia/Shanghai,America/New_York - 预设时区列表
+            // ?time=2024-01-15T14:30 - 设置基准时间
+            // ?auto=true - 自动设置当前时间
+            
+            // 设置语言
+            const lang = urlParams.get('lang');
+            if (lang && ['zh', 'en', 'ja', 'ko', 'de', 'fr'].includes(lang)) {
+                currentLanguage = lang;
+                document.getElementById('languageSelect').value = lang;
+            }
+            
+            // 设置预选时区
+            const timezones = urlParams.get('timezones');
+            if (timezones) {
+                const timezoneList = timezones.split(',').filter(tz => tz.trim());
+                // 验证时区是否有效
+                const validTimezones = timezoneList.filter(tz => {
+                    try {
+                        Intl.DateTimeFormat(undefined, {timeZone: tz});
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                });
+                selectedTimezones = validTimezones.slice(0, 4); // 最多4个时区
+            }
+            
+            // 设置基准时间
+            const time = urlParams.get('time');
+            const auto = urlParams.get('auto');
+            
+            if (time && !auto) {
+                try {
+                    const baseTime = new Date(time);
+                    if (!isNaN(baseTime.getTime())) {
+                        const localISOTime = new Date(baseTime.getTime() - baseTime.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                        document.getElementById('baseTime').value = localISOTime;
+                    }
+                } catch (e) {
+                    // 如果时间格式无效，使用当前时间
+                    setCurrentTime();
+                }
+            } else {
+                // 默认或auto=true时使用当前时间
+                setCurrentTime();
+            }
+        }
+        
+        // 分享当前设置
+        function shareCurrentSettings() {
+            generateShareLink();
+        }
+        
+        // 生成分享链接
+        function generateShareLink() {
+            const params = new URLSearchParams();
+            
+            // 添加当前语言
+            if (currentLanguage !== 'zh') {
+                params.set('lang', currentLanguage);
+            }
+            
+            // 添加选中的时区
+            if (selectedTimezones.length > 0) {
+                params.set('timezones', selectedTimezones.join(','));
+            }
+            
+            // 添加基准时间
+            const baseTimeInput = document.getElementById('baseTime').value;
+            if (baseTimeInput) {
+                params.set('time', baseTimeInput);
+            }
+            
+            const baseUrl = window.location.origin + window.location.pathname;
+            const shareUrl = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+            
+            // 复制到剪贴板
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                const t = translations[currentLanguage];
+                alert(t.shareLinkCopied || '分享链接已复制到剪贴板！');
+            }).catch(() => {
+                // 如果复制失败，显示链接让用户手动复制
+                prompt('分享链接（请手动复制）:', shareUrl);
+            });
+        }
+        
         // 页面加载时初始化
         window.onload = function() {
+            // 首先初始化UI和时区选择器
             updateUILanguage();
             initializeTimezoneSelect();
-            setCurrentTime();
+            
+            // 然后解析URL参数（这会设置时区和时间）
+            parseURLParams();
+            
+            // 确保基准时间已设置，如果没有则使用当前时间
+            const baseTimeInput = document.getElementById('baseTime');
+            if (!baseTimeInput.value) {
+                setCurrentTime();
+            }
+            
+            // 最后更新时区列表和对比结果
             updateTimezoneList();
             updateComparison();
         };
