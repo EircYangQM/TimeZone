@@ -698,7 +698,7 @@
             'America/Toronto': 'Toronto (Canada)',
             'Asia/Dubai': 'Dubai (UAE)',
             'Europe/Rome': 'Rome (Italy)',
-            'Asia/Mumbai': 'Mumbai (India)',
+            'Asia/Kolkata': 'Mumbai (India)',
             'America/Sao_Paulo': 'São Paulo (Brazil)'
         };
         
@@ -722,7 +722,7 @@
             'America/Toronto': 'トロント (カナダ)',
             'Asia/Dubai': 'ドバイ (UAE)',
             'Europe/Rome': 'ローマ (イタリア)',
-            'Asia/Mumbai': 'ムンバイ (インド)',
+            'Asia/Kolkata': 'ムンバイ (インド)',
             'America/Sao_Paulo': 'サンパウロ (ブラジル)'
         };
         
@@ -746,7 +746,7 @@
             'America/Toronto': '토론토 (캐나다)',
             'Asia/Dubai': '두바이 (UAE)',
             'Europe/Rome': '로마 (이탈리아)',
-            'Asia/Mumbai': '뭄바이 (인도)',
+            'Asia/Kolkata': '뭄바이 (인도)',
             'America/Sao_Paulo': '상파울루 (브라질)'
         };
         
@@ -770,7 +770,7 @@
             'America/Toronto': 'Toronto (Kanada)',
             'Asia/Dubai': 'Dubai (VAE)',
             'Europe/Rome': 'Rom (Italien)',
-            'Asia/Mumbai': 'Mumbai (Indien)',
+            'Asia/Kolkata': 'Mumbai (Indien)',
             'America/Sao_Paulo': 'São Paulo (Brasilien)'
         };
         
@@ -794,7 +794,7 @@
             'America/Toronto': 'Toronto (Canada)',
             'Asia/Dubai': 'Dubaï (EAU)',
             'Europe/Rome': 'Rome (Italie)',
-            'Asia/Mumbai': 'Mumbai (Inde)',
+            'Asia/Kolkata': 'Mumbai (Inde)',
             'America/Sao_Paulo': 'São Paulo (Brésil)'
         };
         
@@ -818,7 +818,7 @@
             'America/Toronto': '多伦多 (加拿大)',
             'Asia/Dubai': '迪拜 (阿联酋)',
             'Europe/Rome': '罗马 (意大利)',
-            'Asia/Mumbai': '孟买 (印度)',
+            'Asia/Kolkata': '孟买 (印度)',
             'America/Sao_Paulo': '圣保罗 (巴西)',
             // 非洲时区
             'Africa/Abidjan': '阿比让 (科特迪瓦)',
@@ -1696,6 +1696,8 @@
             if (lang && ['zh', 'en', 'ja', 'ko', 'de', 'fr'].includes(lang)) {
                 currentLanguage = lang;
                 document.getElementById('languageSelect').value = lang;
+                // 立即更新UI语言
+                updateUILanguage();
             }
             
             // 设置预选时区
@@ -1775,12 +1777,16 @@
         
         // 页面加载时初始化
         window.onload = function() {
-            // 首先初始化UI和时区选择器
-            updateUILanguage();
+            // 首先初始化时区选择器
             initializeTimezoneSelect();
             
-            // 然后解析URL参数（这会设置时区和时间）
+            // 然后解析URL参数（这会设置时区、时间和语言）
             parseURLParams();
+            
+            // 如果没有从URL设置语言，使用默认语言更新UI
+            if (!new URLSearchParams(window.location.search).get('lang')) {
+                updateUILanguage();
+            }
             
             // 确保基准时间已设置，如果没有则使用当前时间
             const baseTimeInput = document.getElementById('baseTime');
