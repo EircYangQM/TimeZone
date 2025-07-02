@@ -254,124 +254,6 @@
                 yes: '是',
                 no: '否'
             },
-            
-            // 为英文添加主要时区翻译
-            'Asia/Shanghai': 'Shanghai (China)',
-            'Asia/Tokyo': 'Tokyo (Japan)',
-            'Asia/Seoul': 'Seoul (South Korea)',
-            'Europe/London': 'London (United Kingdom)',
-            'Europe/Paris': 'Paris (France)',
-            'Europe/Berlin': 'Berlin (Germany)',
-            'America/New_York': 'New York (United States)',
-            'America/Los_Angeles': 'Los Angeles (United States)',
-            'America/Chicago': 'Chicago (United States)',
-            'Australia/Sydney': 'Sydney (Australia)',
-            'Pacific/Auckland': 'Auckland (New Zealand)',
-            'Asia/Hong_Kong': 'Hong Kong (China)',
-            'Asia/Singapore': 'Singapore (Singapore)',
-            'Europe/Moscow': 'Moscow (Russia)',
-            'America/Toronto': 'Toronto (Canada)',
-            'Asia/Dubai': 'Dubai (UAE)',
-            'Europe/Rome': 'Rome (Italy)',
-            'Asia/Mumbai': 'Mumbai (India)',
-            'America/Sao_Paulo': 'São Paulo (Brazil)'
-        },
-        
-        ja: {
-            ...timezoneNames.ja,
-            // 主要城市时区日文翻译
-            'Asia/Shanghai': '上海 (中国)',
-            'Asia/Tokyo': '東京 (日本)',
-            'Asia/Seoul': 'ソウル (韓国)',
-            'Europe/London': 'ロンドン (イギリス)',
-            'Europe/Paris': 'パリ (フランス)',
-            'Europe/Berlin': 'ベルリン (ドイツ)',
-            'America/New_York': 'ニューヨーク (アメリカ)',
-            'America/Los_Angeles': 'ロサンゼルス (アメリカ)',
-            'America/Chicago': 'シカゴ (アメリカ)',
-            'Australia/Sydney': 'シドニー (オーストラリア)',
-            'Pacific/Auckland': 'オークランド (ニュージーランド)',
-            'Asia/Hong_Kong': '香港 (中国)',
-            'Asia/Singapore': 'シンガポール (シンガポール)',
-            'Europe/Moscow': 'モスクワ (ロシア)',
-            'America/Toronto': 'トロント (カナダ)',
-            'Asia/Dubai': 'ドバイ (UAE)',
-            'Europe/Rome': 'ローマ (イタリア)',
-            'Asia/Mumbai': 'ムンバイ (インド)',
-            'America/Sao_Paulo': 'サンパウロ (ブラジル)'
-        },
-        
-        ko: {
-            ...timezoneNames.ko,
-            // 主要城市时区韩文翻译
-            'Asia/Shanghai': '상하이 (중국)',
-            'Asia/Tokyo': '도쿄 (일본)',
-            'Asia/Seoul': '서울 (대한민국)',
-            'Europe/London': '런던 (영국)',
-            'Europe/Paris': '파리 (프랑스)',
-            'Europe/Berlin': '베를린 (독일)',
-            'America/New_York': '뉴욕 (미국)',
-            'America/Los_Angeles': '로스앤젤레스 (미국)',
-            'America/Chicago': '시카고 (미국)',
-            'Australia/Sydney': '시드니 (호주)',
-            'Pacific/Auckland': '오클랜드 (뉴질랜드)',
-            'Asia/Hong_Kong': '홍콩 (중국)',
-            'Asia/Singapore': '싱가포르 (싱가포르)',
-            'Europe/Moscow': '모스크바 (러시아)',
-            'America/Toronto': '토론토 (캐나다)',
-            'Asia/Dubai': '두바이 (UAE)',
-            'Europe/Rome': '로마 (이탈리아)',
-            'Asia/Mumbai': '뭄바이 (인도)',
-            'America/Sao_Paulo': '상파울루 (브라질)'
-        },
-        
-        de: {
-            ...timezoneNames.de,
-            // 主要城市时区德文翻译
-            'Asia/Shanghai': 'Shanghai (China)',
-            'Asia/Tokyo': 'Tokio (Japan)',
-            'Asia/Seoul': 'Seoul (Südkorea)',
-            'Europe/London': 'London (Vereinigtes Königreich)',
-            'Europe/Paris': 'Paris (Frankreich)',
-            'Europe/Berlin': 'Berlin (Deutschland)',
-            'America/New_York': 'New York (USA)',
-            'America/Los_Angeles': 'Los Angeles (USA)',
-            'America/Chicago': 'Chicago (USA)',
-            'Australia/Sydney': 'Sydney (Australien)',
-            'Pacific/Auckland': 'Auckland (Neuseeland)',
-            'Asia/Hong_Kong': 'Hongkong (China)',
-            'Asia/Singapore': 'Singapur (Singapur)',
-            'Europe/Moscow': 'Moskau (Russland)',
-            'America/Toronto': 'Toronto (Kanada)',
-            'Asia/Dubai': 'Dubai (VAE)',
-            'Europe/Rome': 'Rom (Italien)',
-            'Asia/Mumbai': 'Mumbai (Indien)',
-            'America/Sao_Paulo': 'São Paulo (Brasilien)'
-        },
-        
-        fr: {
-            ...timezoneNames.fr,
-            // 主要城市时区法文翻译
-            'Asia/Shanghai': 'Shanghai (Chine)',
-            'Asia/Tokyo': 'Tokyo (Japon)',
-            'Asia/Seoul': 'Séoul (Corée du Sud)',
-            'Europe/London': 'Londres (Royaume-Uni)',
-            'Europe/Paris': 'Paris (France)',
-            'Europe/Berlin': 'Berlin (Allemagne)',
-            'America/New_York': 'New York (États-Unis)',
-            'America/Los_Angeles': 'Los Angeles (États-Unis)',
-            'America/Chicago': 'Chicago (États-Unis)',
-            'Australia/Sydney': 'Sydney (Australie)',
-            'Pacific/Auckland': 'Auckland (Nouvelle-Zélande)',
-            'Asia/Hong_Kong': 'Hong Kong (Chine)',
-            'Asia/Singapore': 'Singapour (Singapour)',
-            'Europe/Moscow': 'Moscou (Russie)',
-            'America/Toronto': 'Toronto (Canada)',
-            'Asia/Dubai': 'Dubaï (EAU)',
-            'Europe/Rome': 'Rome (Italie)',
-            'Asia/Mumbai': 'Mumbai (Inde)',
-            'America/Sao_Paulo': 'São Paulo (Brésil)'
-            },
             en: {
                 pageTitle: '🌍 Timezone Comparison Tool',
                 pageSubtitle: 'Enter multiple timezones and times to compare times across different zones',
@@ -782,6 +664,126 @@
         }
         
         // 为各语言添加主要时区的翻译
+        timezoneNames.en = {
+            ...timezoneNames.en,
+            // 主要城市时区英文翻译
+            'Asia/Shanghai': 'Shanghai (China)',
+            'Asia/Tokyo': 'Tokyo (Japan)',
+            'Asia/Seoul': 'Seoul (South Korea)',
+            'Europe/London': 'London (United Kingdom)',
+            'Europe/Paris': 'Paris (France)',
+            'Europe/Berlin': 'Berlin (Germany)',
+            'America/New_York': 'New York (United States)',
+            'America/Los_Angeles': 'Los Angeles (United States)',
+            'America/Chicago': 'Chicago (United States)',
+            'Australia/Sydney': 'Sydney (Australia)',
+            'Pacific/Auckland': 'Auckland (New Zealand)',
+            'Asia/Hong_Kong': 'Hong Kong (China)',
+            'Asia/Singapore': 'Singapore (Singapore)',
+            'Europe/Moscow': 'Moscow (Russia)',
+            'America/Toronto': 'Toronto (Canada)',
+            'Asia/Dubai': 'Dubai (UAE)',
+            'Europe/Rome': 'Rome (Italy)',
+            'Asia/Mumbai': 'Mumbai (India)',
+            'America/Sao_Paulo': 'São Paulo (Brazil)'
+        };
+        
+        timezoneNames.ja = {
+            ...timezoneNames.ja,
+            // 主要城市时区日文翻译
+            'Asia/Shanghai': '上海 (中国)',
+            'Asia/Tokyo': '東京 (日本)',
+            'Asia/Seoul': 'ソウル (韓国)',
+            'Europe/London': 'ロンドン (イギリス)',
+            'Europe/Paris': 'パリ (フランス)',
+            'Europe/Berlin': 'ベルリン (ドイツ)',
+            'America/New_York': 'ニューヨーク (アメリカ)',
+            'America/Los_Angeles': 'ロサンゼルス (アメリカ)',
+            'America/Chicago': 'シカゴ (アメリカ)',
+            'Australia/Sydney': 'シドニー (オーストラリア)',
+            'Pacific/Auckland': 'オークランド (ニュージーランド)',
+            'Asia/Hong_Kong': '香港 (中国)',
+            'Asia/Singapore': 'シンガポール (シンガポール)',
+            'Europe/Moscow': 'モスクワ (ロシア)',
+            'America/Toronto': 'トロント (カナダ)',
+            'Asia/Dubai': 'ドバイ (UAE)',
+            'Europe/Rome': 'ローマ (イタリア)',
+            'Asia/Mumbai': 'ムンバイ (インド)',
+            'America/Sao_Paulo': 'サンパウロ (ブラジル)'
+        };
+        
+        timezoneNames.ko = {
+            ...timezoneNames.ko,
+            // 主要城市时区韩文翻译
+            'Asia/Shanghai': '상하이 (중국)',
+            'Asia/Tokyo': '도쿄 (일본)',
+            'Asia/Seoul': '서울 (대한민국)',
+            'Europe/London': '런던 (영국)',
+            'Europe/Paris': '파리 (프랑스)',
+            'Europe/Berlin': '베를린 (독일)',
+            'America/New_York': '뉴욕 (미국)',
+            'America/Los_Angeles': '로스앤젤레스 (미국)',
+            'America/Chicago': '시카고 (미국)',
+            'Australia/Sydney': '시드니 (호주)',
+            'Pacific/Auckland': '오클랜드 (뉴질랜드)',
+            'Asia/Hong_Kong': '홍콩 (중국)',
+            'Asia/Singapore': '싱가포르 (싱가포르)',
+            'Europe/Moscow': '모스크바 (러시아)',
+            'America/Toronto': '토론토 (캐나다)',
+            'Asia/Dubai': '두바이 (UAE)',
+            'Europe/Rome': '로마 (이탈리아)',
+            'Asia/Mumbai': '뭄바이 (인도)',
+            'America/Sao_Paulo': '상파울루 (브라질)'
+        };
+        
+        timezoneNames.de = {
+            ...timezoneNames.de,
+            // 主要城市时区德文翻译
+            'Asia/Shanghai': 'Shanghai (China)',
+            'Asia/Tokyo': 'Tokio (Japan)',
+            'Asia/Seoul': 'Seoul (Südkorea)',
+            'Europe/London': 'London (Vereinigtes Königreich)',
+            'Europe/Paris': 'Paris (Frankreich)',
+            'Europe/Berlin': 'Berlin (Deutschland)',
+            'America/New_York': 'New York (USA)',
+            'America/Los_Angeles': 'Los Angeles (USA)',
+            'America/Chicago': 'Chicago (USA)',
+            'Australia/Sydney': 'Sydney (Australien)',
+            'Pacific/Auckland': 'Auckland (Neuseeland)',
+            'Asia/Hong_Kong': 'Hongkong (China)',
+            'Asia/Singapore': 'Singapur (Singapur)',
+            'Europe/Moscow': 'Moskau (Russland)',
+            'America/Toronto': 'Toronto (Kanada)',
+            'Asia/Dubai': 'Dubai (VAE)',
+            'Europe/Rome': 'Rom (Italien)',
+            'Asia/Mumbai': 'Mumbai (Indien)',
+            'America/Sao_Paulo': 'São Paulo (Brasilien)'
+        };
+        
+        timezoneNames.fr = {
+            ...timezoneNames.fr,
+            // 主要城市时区法文翻译
+            'Asia/Shanghai': 'Shanghai (Chine)',
+            'Asia/Tokyo': 'Tokyo (Japon)',
+            'Asia/Seoul': 'Séoul (Corée du Sud)',
+            'Europe/London': 'Londres (Royaume-Uni)',
+            'Europe/Paris': 'Paris (France)',
+            'Europe/Berlin': 'Berlin (Allemagne)',
+            'America/New_York': 'New York (États-Unis)',
+            'America/Los_Angeles': 'Los Angeles (États-Unis)',
+            'America/Chicago': 'Chicago (États-Unis)',
+            'Australia/Sydney': 'Sydney (Australie)',
+            'Pacific/Auckland': 'Auckland (Nouvelle-Zélande)',
+            'Asia/Hong_Kong': 'Hong Kong (Chine)',
+            'Asia/Singapore': 'Singapour (Singapour)',
+            'Europe/Moscow': 'Moscou (Russie)',
+            'America/Toronto': 'Toronto (Canada)',
+            'Asia/Dubai': 'Dubaï (EAU)',
+            'Europe/Rome': 'Rome (Italie)',
+            'Asia/Mumbai': 'Mumbai (Inde)',
+            'America/Sao_Paulo': 'São Paulo (Brésil)'
+        };
+        
         timezoneNames.zh = {
             ...timezoneNames.zh,
             // 主要城市时区
