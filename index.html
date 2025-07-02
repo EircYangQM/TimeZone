@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时区时间对比工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .input-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .input-group label {
+            font-weight: bold;
+            min-width: 80px;
+        }
+        .input-group select, .input-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .comparison-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .comparison-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .comparison-table tr:hover {
+            background-color: #e3f2fd;
+        }
+        .time-highlight {
+            font-weight: bold;
+            color: #1976d2;
+        }
+        .timezone-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .timezone-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .info-section {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            border: 1px solid #ddd;
+        }
+        .comparison-table td {
+            padding: 8px 15px;
+            border: 1px solid #eee;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .comparison-table tr:hover td {
+            background-color: #f5f5f5;
+        }
+        .comparison-table td.working-hours {
+            background-color: #e8f5e8;
+            border-right: 4px solid #4caf50;
+        }
+        .comparison-table td.working-hours:hover {
+            background-color: #d4edda;
+        }
+        .comparison-table tr.current-time td {
+            background-color: #4caf50;
+            color: white;
+            font-weight: bold;
+        }
+        .comparison-table tr.current-time:hover td {
+            background-color: #45a049;
+        }
+        .time-display {
+            font-size: 14px;
+        }
+        .no-timezone-message {
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #ddd;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 语言选择器 -->
+        <div style="text-align: right; margin-bottom: 20px;">
+            <select id="languageSelect" onchange="changeLanguage()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+                <option value="de">Deutsch</option>
+                <option value="fr">Français</option>
+            </select>
+        </div>
+        
+        <div class="header">
+            <h1 id="pageTitle">🌍 时区时间对比工具</h1>
+            <p id="pageSubtitle">输入多个时区和时间，实时对比不同时区的时间</p>
+        </div>
+
+        <div class="input-section">
+            <h3 id="addTimezoneTitle">添加时区</h3>
+            <div class="input-group">
+                <label id="searchLabel">搜索时区:</label>
+                <input type="text" id="timezoneSearch" placeholder="输入城市名或时区名搜索..." oninput="filterTimezones()" style="flex: 1; margin-right: 10px;">
+            </div>
+            <div class="input-group">
+                <label id="timezoneLabel">时区:</label>
+                <select id="timezoneSelect" size="8" style="flex: 1; margin-right: 10px;">
+                </select>
+                <button class="btn" id="addTimezoneBtn" onclick="addTimezone()">添加时区</button>
+            </div>
+            
+            <div class="input-group">
+                <label id="baseTimeLabel">基准时间:</label>
+                <input type="datetime-local" id="baseTime" />
+                <button class="btn" id="currentTimeBtn" onclick="setCurrentTime()">使用当前时间</button>
+                <button class="btn" id="updateBtn" onclick="updateComparison()">更新对比</button>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h4 id="addedTimezonesTitle">已添加的时区: <span id="timezoneCount">2</span>/4</h4>
+            <div id="timezoneList" class="timezone-list"></div>
+        </div>
+
+        <div id="comparisonResult"></div>
+    </div>
+
+    <script>
+        let selectedTimezones = ['UTC', 'Asia/Shanghai']; // 默认2个时区，最多可添加到4个
+        let currentLanguage = 'zh'; // 默认语言
+        
+        // 多语言翻译对象
+        const translations = {
+            zh: {
+                pageTitle: '🌍 时区时间对比工具',
+                pageSubtitle: '输入多个时区和时间，实时对比不同时区的时间',
+                addTimezoneTitle: '添加时区',
+                searchLabel: '搜索时区:',
+                searchPlaceholder: '输入城市名或时区名搜索...',
+                timezoneLabel: '时区:',
+                addTimezoneBtn: '添加时区',
+                baseTimeLabel: '基准时间:',
+                currentTimeBtn: '使用当前时间',
+                updateBtn: '更新对比',
+                addedTimezonesTitle: '已添加的时区:',
+                removeBtn: '移除',
+                noTimezoneMessage: '请添加时区进行对比',
+                time: '时间',
+                date: '日期',
+                utcOffset: 'UTC偏移',
+                isDst: '夏令时',
+                yes: '是',
+                no: '否'
+            },
+            
+            // 为英文添加主要时区翻译
+            'Asia/Shanghai': 'Shanghai (China)',
+            'Asia/Tokyo': 'Tokyo (Japan)',
+            'Asia/Seoul': 'Seoul (South Korea)',
+            'Europe/London': 'London (United Kingdom)',
+            'Europe/Paris': 'Paris (France)',
+            'Europe/Berlin': 'Berlin (Germany)',
+            'America/New_York': 'New York (United States)',
+            'America/Los_Angeles': 'Los Angeles (United States)',
+            'America/Chicago': 'Chicago (United States)',
+            'Australia/Sydney': 'Sydney (Australia)',
+            'Pacific/Auckland': 'Auckland (New Zealand)',
+            'Asia/Hong_Kong': 'Hong Kong (China)',
+            'Asia/Singapore': 'Singapore (Singapore)',
+            'Europe/Moscow': 'Moscow (Russia)',
+            'America/Toronto': 'Toronto (Canada)',
+            'Asia/Dubai': 'Dubai (UAE)',
+            'Europe/Rome': 'Rome (Italy)',
+            'Asia/Mumbai': 'Mumbai (India)',
+            'America/Sao_Paulo': 'São Paulo (Brazil)'
+        },
+        
+        ja: {
+            ...timezoneNames.ja,
+            // 主要城市时区日文翻译
+            'Asia/Shanghai': '上海 (中国)',
+            'Asia/Tokyo': '東京 (日本)',
+            'Asia/Seoul': 'ソウル (韓国)',
+            'Europe/London': 'ロンドン (イギリス)',
+            'Europe/Paris': 'パリ (フランス)',
+            'Europe/Berlin': 'ベルリン (ドイツ)',
+            'America/New_York': 'ニューヨーク (アメリカ)',
+            'America/Los_Angeles': 'ロサンゼルス (アメリカ)',
+            'America/Chicago': 'シカゴ (アメリカ)',
+            'Australia/Sydney': 'シドニー (オーストラリア)',
+            'Pacific/Auckland': 'オークランド (ニュージーランド)',
+            'Asia/Hong_Kong': '香港 (中国)',
+            'Asia/Singapore': 'シンガポール (シンガポール)',
+            'Europe/Moscow': 'モスクワ (ロシア)',
+            'America/Toronto': 'トロント (カナダ)',
+            'Asia/Dubai': 'ドバイ (UAE)',
+            'Europe/Rome': 'ローマ (イタリア)',
+            'Asia/Mumbai': 'ムンバイ (インド)',
+            'America/Sao_Paulo': 'サンパウロ (ブラジル)'
+        },
+        
+        ko: {
+            ...timezoneNames.ko,
+            // 主要城市时区韩文翻译
+            'Asia/Shanghai': '상하이 (중국)',
+            'Asia/Tokyo': '도쿄 (일본)',
+            'Asia/Seoul': '서울 (대한민국)',
+            'Europe/London': '런던 (영국)',
+            'Europe/Paris': '파리 (프랑스)',
+            'Europe/Berlin': '베를린 (독일)',
+            'America/New_York': '뉴욕 (미국)',
+            'America/Los_Angeles': '로스앤젤레스 (미국)',
+            'America/Chicago': '시카고 (미국)',
+            'Australia/Sydney': '시드니 (호주)',
+            'Pacific/Auckland': '오클랜드 (뉴질랜드)',
+            'Asia/Hong_Kong': '홍콩 (중국)',
+            'Asia/Singapore': '싱가포르 (싱가포르)',
+            'Europe/Moscow': '모스크바 (러시아)',
+            'America/Toronto': '토론토 (캐나다)',
+            'Asia/Dubai': '두바이 (UAE)',
+            'Europe/Rome': '로마 (이탈리아)',
+            'Asia/Mumbai': '뭄바이 (인도)',
+            'America/Sao_Paulo': '상파울루 (브라질)'
+        },
+        
+        de: {
+            ...timezoneNames.de,
+            // 主要城市时区德文翻译
+            'Asia/Shanghai': 'Shanghai (China)',
+            'Asia/Tokyo': 'Tokio (Japan)',
+            'Asia/Seoul': 'Seoul (Südkorea)',
+            'Europe/London': 'London (Vereinigtes Königreich)',
+            'Europe/Paris': 'Paris (Frankreich)',
+            'Europe/Berlin': 'Berlin (Deutschland)',
+            'America/New_York': 'New York (USA)',
+            'America/Los_Angeles': 'Los Angeles (USA)',
+            'America/Chicago': 'Chicago (USA)',
+            'Australia/Sydney': 'Sydney (Australien)',
+            'Pacific/Auckland': 'Auckland (Neuseeland)',
+            'Asia/Hong_Kong': 'Hongkong (China)',
+            'Asia/Singapore': 'Singapur (Singapur)',
+            'Europe/Moscow': 'Moskau (Russland)',
+            'America/Toronto': 'Toronto (Kanada)',
+            'Asia/Dubai': 'Dubai (VAE)',
+            'Europe/Rome': 'Rom (Italien)',
+            'Asia/Mumbai': 'Mumbai (Indien)',
+            'America/Sao_Paulo': 'São Paulo (Brasilien)'
+        },
+        
+        fr: {
+            ...timezoneNames.fr,
+            // 主要城市时区法文翻译
+            'Asia/Shanghai': 'Shanghai (Chine)',
+            'Asia/Tokyo': 'Tokyo (Japon)',
+            'Asia/Seoul': 'Séoul (Corée du Sud)',
+            'Europe/London': 'Londres (Royaume-Uni)',
+            'Europe/Paris': 'Paris (France)',
+            'Europe/Berlin': 'Berlin (Allemagne)',
+            'America/New_York': 'New York (États-Unis)',
+            'America/Los_Angeles': 'Los Angeles (États-Unis)',
+            'America/Chicago': 'Chicago (États-Unis)',
+            'Australia/Sydney': 'Sydney (Australie)',
+            'Pacific/Auckland': 'Auckland (Nouvelle-Zélande)',
+            'Asia/Hong_Kong': 'Hong Kong (Chine)',
+            'Asia/Singapore': 'Singapour (Singapour)',
+            'Europe/Moscow': 'Moscou (Russie)',
+            'America/Toronto': 'Toronto (Canada)',
+            'Asia/Dubai': 'Dubaï (EAU)',
+            'Europe/Rome': 'Rome (Italie)',
+            'Asia/Mumbai': 'Mumbai (Inde)',
+            'America/Sao_Paulo': 'São Paulo (Brésil)'
+            },
+            en: {
+                pageTitle: '🌍 Timezone Comparison Tool',
+                pageSubtitle: 'Enter multiple timezones and times to compare times across different zones',
+                addTimezoneTitle: 'Add Timezone',
+                searchLabel: 'Search Timezone:',
+                searchPlaceholder: 'Enter city name or timezone to search...',
+                timezoneLabel: 'Timezone:',
+                addTimezoneBtn: 'Add Timezone',
+                baseTimeLabel: 'Base Time:',
+                currentTimeBtn: 'Use Current Time',
+                updateBtn: 'Update Comparison',
+                addedTimezonesTitle: 'Added Timezones:',
+                removeBtn: 'Remove',
+                noTimezoneMessage: 'Please add timezones for comparison',
+                time: 'Time',
+                date: 'Date',
+                utcOffset: 'UTC Offset',
+                isDst: 'DST',
+                yes: 'Yes',
+                no: 'No'
+            },
+            ja: {
+                pageTitle: '🌍 タイムゾーン比較ツール',
+                pageSubtitle: '複数のタイムゾーンと時間を入力して、異なるゾーンの時間を比較します',
+                addTimezoneTitle: 'タイムゾーンを追加',
+                searchLabel: 'タイムゾーン検索:',
+                searchPlaceholder: '都市名またはタイムゾーン名を入力して検索...',
+                timezoneLabel: 'タイムゾーン:',
+                addTimezoneBtn: 'タイムゾーンを追加',
+                baseTimeLabel: '基準時間:',
+                currentTimeBtn: '現在時刻を使用',
+                updateBtn: '比較を更新',
+                addedTimezonesTitle: '追加されたタイムゾーン:',
+                removeBtn: '削除',
+                noTimezoneMessage: '比較するタイムゾーンを追加してください',
+                time: '時間',
+                date: '日付',
+                utcOffset: 'UTC オフセット',
+                isDst: '夏時間',
+                yes: 'はい',
+                no: 'いいえ'
+            },
+            ko: {
+                pageTitle: '🌍 시간대 비교 도구',
+                pageSubtitle: '여러 시간대와 시간을 입력하여 다른 지역의 시간을 비교합니다',
+                addTimezoneTitle: '시간대 추가',
+                searchLabel: '시간대 검색:',
+                searchPlaceholder: '도시명 또는 시간대명을 입력하여 검색...',
+                timezoneLabel: '시간대:',
+                addTimezoneBtn: '시간대 추가',
+                baseTimeLabel: '기준 시간:',
+                currentTimeBtn: '현재 시간 사용',
+                updateBtn: '비교 업데이트',
+                addedTimezonesTitle: '추가된 시간대:',
+                removeBtn: '제거',
+                noTimezoneMessage: '비교할 시간대를 추가해주세요',
+                time: '시간',
+                date: '날짜',
+                utcOffset: 'UTC 오프셋',
+                isDst: '일광절약시간',
+                yes: '예',
+                no: '아니오'
+            },
+            de: {
+                pageTitle: '🌍 Zeitzonen-Vergleichstool',
+                pageSubtitle: 'Geben Sie mehrere Zeitzonen und Zeiten ein, um Zeiten in verschiedenen Zonen zu vergleichen',
+                addTimezoneTitle: 'Zeitzone hinzufügen',
+                searchLabel: 'Zeitzone suchen:',
+                searchPlaceholder: 'Stadtname oder Zeitzone eingeben zum Suchen...',
+                timezoneLabel: 'Zeitzone:',
+                addTimezoneBtn: 'Zeitzone hinzufügen',
+                baseTimeLabel: 'Basiszeit:',
+                currentTimeBtn: 'Aktuelle Zeit verwenden',
+                updateBtn: 'Vergleich aktualisieren',
+                addedTimezonesTitle: 'Hinzugefügte Zeitzonen:',
+                removeBtn: 'Entfernen',
+                noTimezoneMessage: 'Bitte fügen Sie Zeitzonen zum Vergleich hinzu',
+                time: 'Zeit',
+                date: 'Datum',
+                utcOffset: 'UTC-Versatz',
+                isDst: 'Sommerzeit',
+                yes: 'Ja',
+                no: 'Nein'
+            },
+            fr: {
+                pageTitle: '🌍 Outil de Comparaison de Fuseaux Horaires',
+                pageSubtitle: 'Entrez plusieurs fuseaux horaires et heures pour comparer les heures dans différentes zones',
+                addTimezoneTitle: 'Ajouter un Fuseau Horaire',
+                searchLabel: 'Rechercher un Fuseau Horaire:',
+                searchPlaceholder: 'Entrez le nom de ville ou fuseau horaire pour rechercher...',
+                timezoneLabel: 'Fuseau Horaire:',
+                addTimezoneBtn: 'Ajouter un Fuseau Horaire',
+                baseTimeLabel: 'Heure de Base:',
+                currentTimeBtn: 'Utiliser l\'Heure Actuelle',
+                updateBtn: 'Mettre à Jour la Comparaison',
+                addedTimezonesTitle: 'Fuseaux Horaires Ajoutés:',
+                removeBtn: 'Supprimer',
+                noTimezoneMessage: 'Veuillez ajouter des fuseaux horaires pour la comparaison',
+                time: 'Heure',
+                date: 'Date',
+                utcOffset: 'Décalage UTC',
+                isDst: 'Heure d\'été',
+                yes: 'Oui',
+                no: 'Non'
+            }
+        };
+        
+        // 语言切换函数
+        function changeLanguage() {
+            const languageSelect = document.getElementById('languageSelect');
+            currentLanguage = languageSelect.value;
+            updateUILanguage();
+            updateTimezoneList();
+            updateComparison();
+        }
+        
+        // 更新界面语言
+        function updateUILanguage() {
+            const t = translations[currentLanguage];
+            
+            document.getElementById('pageTitle').textContent = t.pageTitle;
+            document.getElementById('pageSubtitle').textContent = t.pageSubtitle;
+            document.getElementById('addTimezoneTitle').textContent = t.addTimezoneTitle;
+            document.getElementById('searchLabel').textContent = t.searchLabel;
+            document.getElementById('timezoneSearch').placeholder = t.searchPlaceholder;
+            document.getElementById('timezoneLabel').textContent = t.timezoneLabel;
+            document.getElementById('addTimezoneBtn').textContent = t.addTimezoneBtn;
+            document.getElementById('baseTimeLabel').textContent = t.baseTimeLabel;
+            document.getElementById('currentTimeBtn').textContent = t.currentTimeBtn;
+            document.getElementById('updateBtn').textContent = t.updateBtn;
+            
+            // 更新已添加时区标题
+            const timezoneCount = selectedTimezones.length;
+            document.getElementById('addedTimezonesTitle').innerHTML = `${t.addedTimezonesTitle} <span id="timezoneCount">${timezoneCount}</span>/4`;
+        }
+        
+        // 时区缩写到IANA时区标识符的映射
+        const timezoneAbbreviationMap = {
+            'GMT': 'Europe/London',
+            'CST': 'Asia/Shanghai',
+            'EST': 'America/New_York',
+            'PST': 'America/Los_Angeles',
+            'MST': 'America/Denver',
+            'JST': 'Asia/Tokyo',
+            'KST': 'Asia/Seoul',
+            'IST': 'Asia/Kolkata',
+            'CET': 'Europe/Berlin',
+            'EET': 'Europe/Athens',
+            'WET': 'Europe/Lisbon',
+            'AEST': 'Australia/Sydney',
+            'AWST': 'Australia/Perth',
+            'NZST': 'Pacific/Auckland',
+            'HST': 'Pacific/Honolulu',
+            'AKST': 'America/Anchorage',
+            'CAT': 'Africa/Johannesburg',
+            'EAT': 'Africa/Nairobi',
+            'WAT': 'Africa/Lagos',
+            'AST': 'America/Halifax',
+            'NST': 'America/St_Johns',
+            'BST': 'Europe/London',
+            'CEST': 'Europe/Berlin',
+            'EEST': 'Europe/Athens',
+            'EDT': 'America/New_York',
+            'PDT': 'America/Los_Angeles',
+            'MDT': 'America/Denver',
+            'CDT': 'America/Chicago',
+            'ADT': 'America/Halifax',
+            'NDT': 'America/St_Johns',
+            'AEDT': 'Australia/Sydney',
+            'NZDT': 'Pacific/Auckland'
+        };
+        
+        // 获取实际时区标识符（处理缩写映射）
+        function getActualTimezone(timezone) {
+            return timezoneAbbreviationMap[timezone] || timezone;
+        }
+        
+        // 多语言时区显示名称映射
+        const timezoneNames = {
+            zh: {
+                'UTC': 'UTC (协调世界时)',
+                
+                // 常用时区缩写
+                'GMT': 'GMT (格林威治标准时间)',
+                'CST': 'CST (中国标准时间)',
+                'EST': 'EST (美国东部标准时间)',
+                'PST': 'PST (美国太平洋标准时间)',
+                'MST': 'MST (美国山地标准时间)',
+                'JST': 'JST (日本标准时间)',
+                'KST': 'KST (韩国标准时间)',
+                'IST': 'IST (印度标准时间)',
+                'CET': 'CET (中欧时间)',
+                'EET': 'EET (东欧时间)',
+                'WET': 'WET (西欧时间)',
+                'AEST': 'AEST (澳大利亚东部标准时间)',
+                'AWST': 'AWST (澳大利亚西部标准时间)',
+                'NZST': 'NZST (新西兰标准时间)',
+                'HST': 'HST (夏威夷标准时间)',
+                'AKST': 'AKST (阿拉斯加标准时间)',
+                'CAT': 'CAT (中非时间)',
+                'EAT': 'EAT (东非时间)',
+                'WAT': 'WAT (西非时间)',
+                'AST': 'AST (大西洋标准时间)',
+                'NST': 'NST (纽芬兰标准时间)',
+                'BST': 'BST (英国夏令时)',
+                'CEST': 'CEST (中欧夏令时)',
+                'EEST': 'EEST (东欧夏令时)',
+                'EDT': 'EDT (美国东部夏令时)',
+                'PDT': 'PDT (美国太平洋夏令时)',
+                'MDT': 'MDT (美国山地夏令时)',
+                'CDT': 'CDT (美国中部夏令时)',
+                'ADT': 'ADT (大西洋夏令时)',
+                'NDT': 'NDT (纽芬兰夏令时)',
+                'AEDT': 'AEDT (澳大利亚东部夏令时)',
+                'NZDT': 'NZDT (新西兰夏令时)',
+            },
+            en: {
+                'UTC': 'UTC (Coordinated Universal Time)',
+                
+                // Common timezone abbreviations
+                'GMT': 'GMT (Greenwich Mean Time)',
+                'CST': 'CST (China Standard Time)',
+                'EST': 'EST (Eastern Standard Time)',
+                'PST': 'PST (Pacific Standard Time)',
+                'MST': 'MST (Mountain Standard Time)',
+                'JST': 'JST (Japan Standard Time)',
+                'KST': 'KST (Korea Standard Time)',
+                'IST': 'IST (India Standard Time)',
+                'CET': 'CET (Central European Time)',
+                'EET': 'EET (Eastern European Time)',
+                'WET': 'WET (Western European Time)',
+                'AEST': 'AEST (Australian Eastern Standard Time)',
+                'AWST': 'AWST (Australian Western Standard Time)',
+                'NZST': 'NZST (New Zealand Standard Time)',
+                'HST': 'HST (Hawaii Standard Time)',
+                'AKST': 'AKST (Alaska Standard Time)',
+                'CAT': 'CAT (Central Africa Time)',
+                'EAT': 'EAT (East Africa Time)',
+                'WAT': 'WAT (West Africa Time)',
+                'AST': 'AST (Atlantic Standard Time)',
+                'NST': 'NST (Newfoundland Standard Time)',
+                'BST': 'BST (British Summer Time)',
+                'CEST': 'CEST (Central European Summer Time)',
+                'EEST': 'EEST (Eastern European Summer Time)',
+                'EDT': 'EDT (Eastern Daylight Time)',
+                'PDT': 'PDT (Pacific Daylight Time)',
+                'MDT': 'MDT (Mountain Daylight Time)',
+                'CDT': 'CDT (Central Daylight Time)',
+                'ADT': 'ADT (Atlantic Daylight Time)',
+                'NDT': 'NDT (Newfoundland Daylight Time)',
+                'AEDT': 'AEDT (Australian Eastern Daylight Time)',
+                'NZDT': 'NZDT (New Zealand Daylight Time)',
+            },
+            ja: {
+                'UTC': 'UTC (協定世界時)',
+                
+                // 一般的なタイムゾーン略語
+                'GMT': 'GMT (グリニッジ標準時)',
+                'CST': 'CST (中国標準時)',
+                'EST': 'EST (東部標準時)',
+                'PST': 'PST (太平洋標準時)',
+                'MST': 'MST (山地標準時)',
+                'JST': 'JST (日本標準時)',
+                'KST': 'KST (韓国標準時)',
+                'IST': 'IST (インド標準時)',
+                'CET': 'CET (中央ヨーロッパ時間)',
+                'EET': 'EET (東ヨーロッパ時間)',
+                'WET': 'WET (西ヨーロッパ時間)',
+                'AEST': 'AEST (オーストラリア東部標準時)',
+                'AWST': 'AWST (オーストラリア西部標準時)',
+                'NZST': 'NZST (ニュージーランド標準時)',
+                'HST': 'HST (ハワイ標準時)',
+                'AKST': 'AKST (アラスカ標準時)',
+                'CAT': 'CAT (中央アフリカ時間)',
+                'EAT': 'EAT (東アフリカ時間)',
+                'WAT': 'WAT (西アフリカ時間)',
+                'AST': 'AST (大西洋標準時)',
+                'NST': 'NST (ニューファンドランド標準時)',
+                'BST': 'BST (英国夏時間)',
+                'CEST': 'CEST (中央ヨーロッパ夏時間)',
+                'EEST': 'EEST (東ヨーロッパ夏時間)',
+                'EDT': 'EDT (東部夏時間)',
+                'PDT': 'PDT (太平洋夏時間)',
+                'MDT': 'MDT (山地夏時間)',
+                'CDT': 'CDT (中部夏時間)',
+                'ADT': 'ADT (大西洋夏時間)',
+                'NDT': 'NDT (ニューファンドランド夏時間)',
+                'AEDT': 'AEDT (オーストラリア東部夏時間)',
+                'NZDT': 'NZDT (ニュージーランド夏時間)',
+            },
+            ko: {
+                'UTC': 'UTC (협정 세계시)',
+                
+                // 일반적인 시간대 약어
+                'GMT': 'GMT (그리니치 표준시)',
+                'CST': 'CST (중국 표준시)',
+                'EST': 'EST (동부 표준시)',
+                'PST': 'PST (태평양 표준시)',
+                'MST': 'MST (산지 표준시)',
+                'JST': 'JST (일본 표준시)',
+                'KST': 'KST (한국 표준시)',
+                'IST': 'IST (인도 표준시)',
+                'CET': 'CET (중앙 유럽 시간)',
+                'EET': 'EET (동유럽 시간)',
+                'WET': 'WET (서유럽 시간)',
+                'AEST': 'AEST (호주 동부 표준시)',
+                'AWST': 'AWST (호주 서부 표준시)',
+                'NZST': 'NZST (뉴질랜드 표준시)',
+                'HST': 'HST (하와이 표준시)',
+                'AKST': 'AKST (알래스카 표준시)',
+                'CAT': 'CAT (중앙 아프리카 시간)',
+                'EAT': 'EAT (동아프리카 시간)',
+                'WAT': 'WAT (서아프리카 시간)',
+                'AST': 'AST (대서양 표준시)',
+                'NST': 'NST (뉴펀들랜드 표준시)',
+                'BST': 'BST (영국 하계시간)',
+                'CEST': 'CEST (중앙 유럽 하계시간)',
+                'EEST': 'EEST (동유럽 하계시간)',
+                'EDT': 'EDT (동부 일광절약시간)',
+                'PDT': 'PDT (태평양 일광절약시간)',
+                'MDT': 'MDT (산지 일광절약시간)',
+                'CDT': 'CDT (중부 일광절약시간)',
+                'ADT': 'ADT (대서양 일광절약시간)',
+                'NDT': 'NDT (뉴펀들랜드 일광절약시간)',
+                'AEDT': 'AEDT (호주 동부 일광절약시간)',
+                'NZDT': 'NZDT (뉴질랜드 일광절약시간)',
+            },
+            de: {
+                'UTC': 'UTC (Koordinierte Weltzeit)',
+                
+                // Häufige Zeitzonenabkürzungen
+                'GMT': 'GMT (Greenwich-Zeit)',
+                'CST': 'CST (Chinesische Standardzeit)',
+                'EST': 'EST (Östliche Standardzeit)',
+                'PST': 'PST (Pazifische Standardzeit)',
+                'MST': 'MST (Gebirgs-Standardzeit)',
+                'JST': 'JST (Japanische Standardzeit)',
+                'KST': 'KST (Koreanische Standardzeit)',
+                'IST': 'IST (Indische Standardzeit)',
+                'CET': 'CET (Mitteleuropäische Zeit)',
+                'EET': 'EET (Osteuropäische Zeit)',
+                'WET': 'WET (Westeuropäische Zeit)',
+                'AEST': 'AEST (Australische Ostküsten-Standardzeit)',
+                'AWST': 'AWST (Australische Westküsten-Standardzeit)',
+                'NZST': 'NZST (Neuseeland-Standardzeit)',
+                'HST': 'HST (Hawaii-Standardzeit)',
+                'AKST': 'AKST (Alaska-Standardzeit)',
+                'CAT': 'CAT (Zentralafrikanische Zeit)',
+                'EAT': 'EAT (Ostafrikanische Zeit)',
+                'WAT': 'WAT (Westafrikanische Zeit)',
+                'AST': 'AST (Atlantische Standardzeit)',
+                'NST': 'NST (Neufundland-Standardzeit)',
+                'BST': 'BST (Britische Sommerzeit)',
+                'CEST': 'CEST (Mitteleuropäische Sommerzeit)',
+                'EEST': 'EEST (Osteuropäische Sommerzeit)',
+                'EDT': 'EDT (Östliche Sommerzeit)',
+                'PDT': 'PDT (Pazifische Sommerzeit)',
+                'MDT': 'MDT (Gebirgs-Sommerzeit)',
+                'CDT': 'CDT (Zentrale Sommerzeit)',
+                'ADT': 'ADT (Atlantische Sommerzeit)',
+                'NDT': 'NDT (Neufundland-Sommerzeit)',
+                'AEDT': 'AEDT (Australische Ostküsten-Sommerzeit)',
+                'NZDT': 'NZDT (Neuseeland-Sommerzeit)',
+            },
+            fr: {
+                'UTC': 'UTC (Temps universel coordonné)',
+                
+                // Abréviations de fuseaux horaires courantes
+                'GMT': 'GMT (Heure de Greenwich)',
+                'CST': 'CST (Heure standard de Chine)',
+                'EST': 'EST (Heure standard de l\'Est)',
+                'PST': 'PST (Heure standard du Pacifique)',
+                'MST': 'MST (Heure standard des Montagnes)',
+                'JST': 'JST (Heure standard du Japon)',
+                'KST': 'KST (Heure standard de Corée)',
+                'IST': 'IST (Heure standard de l\'Inde)',
+                'CET': 'CET (Heure d\'Europe centrale)',
+                'EET': 'EET (Heure d\'Europe de l\'Est)',
+                'WET': 'WET (Heure d\'Europe de l\'Ouest)',
+                'AEST': 'AEST (Heure standard de l\'Est australien)',
+                'AWST': 'AWST (Heure standard de l\'Ouest australien)',
+                'NZST': 'NZST (Heure standard de Nouvelle-Zélande)',
+                'HST': 'HST (Heure standard d\'Hawaï)',
+                'AKST': 'AKST (Heure standard d\'Alaska)',
+                'CAT': 'CAT (Heure d\'Afrique centrale)',
+                'EAT': 'EAT (Heure d\'Afrique de l\'Est)',
+                'WAT': 'WAT (Heure d\'Afrique de l\'Ouest)',
+                'AST': 'AST (Heure standard de l\'Atlantique)',
+                'NST': 'NST (Heure standard de Terre-Neuve)',
+                'BST': 'BST (Heure d\'été britannique)',
+                'CEST': 'CEST (Heure d\'été d\'Europe centrale)',
+                'EEST': 'EEST (Heure d\'été d\'Europe de l\'Est)',
+                'EDT': 'EDT (Heure d\'été de l\'Est)',
+                'PDT': 'PDT (Heure d\'été du Pacifique)',
+                'MDT': 'MDT (Heure d\'été des Montagnes)',
+                'CDT': 'CDT (Heure d\'été du Centre)',
+                'ADT': 'ADT (Heure d\'été de l\'Atlantique)',
+                'NDT': 'NDT (Heure d\'été de Terre-Neuve)',
+                'AEDT': 'AEDT (Heure d\'été de l\'Est australien)',
+                'NZDT': 'NZDT (Heure d\'été de Nouvelle-Zélande)',
+            }
+        };
+        
+        // 获取当前语言的时区名称
+        function getTimezoneDisplayName(timezone) {
+            const names = timezoneNames[currentLanguage] || timezoneNames.zh;
+            return names[timezone] || timezone;
+        }
+        
+        // 为各语言添加主要时区的翻译
+        timezoneNames.zh = {
+            ...timezoneNames.zh,
+            // 主要城市时区
+            'Asia/Shanghai': '上海 (中国)',
+            'Asia/Tokyo': '东京 (日本)',
+            'Asia/Seoul': '首尔 (韩国)',
+            'Europe/London': '伦敦 (英国)',
+            'Europe/Paris': '巴黎 (法国)',
+            'Europe/Berlin': '柏林 (德国)',
+            'America/New_York': '纽约 (美国)',
+            'America/Los_Angeles': '洛杉矶 (美国)',
+            'America/Chicago': '芝加哥 (美国)',
+            'Australia/Sydney': '悉尼 (澳大利亚)',
+            'Pacific/Auckland': '奥克兰 (新西兰)',
+            'Asia/Hong_Kong': '香港 (中国)',
+            'Asia/Singapore': '新加坡 (新加坡)',
+            'Europe/Moscow': '莫斯科 (俄罗斯)',
+            'America/Toronto': '多伦多 (加拿大)',
+            'Asia/Dubai': '迪拜 (阿联酋)',
+            'Europe/Rome': '罗马 (意大利)',
+            'Asia/Mumbai': '孟买 (印度)',
+            'America/Sao_Paulo': '圣保罗 (巴西)',
+            // 非洲时区
+            'Africa/Abidjan': '阿比让 (科特迪瓦)',
+            'Africa/Accra': '阿克拉 (加纳)',
+            'Africa/Addis_Ababa': '亚的斯亚贝巴 (埃塞俄比亚)',
+            'Africa/Algiers': '阿尔及尔 (阿尔及利亚)',
+            'Africa/Asmara': '阿斯马拉 (厄立特里亚)',
+            'Africa/Bamako': '巴马科 (马里)',
+            'Africa/Bangui': '班吉 (中非共和国)',
+            'Africa/Banjul': '班珠尔 (冈比亚)',
+            'Africa/Bissau': '比绍 (几内亚比绍)',
+            'Africa/Blantyre': '布兰太尔 (马拉维)',
+            'Africa/Brazzaville': '布拉柴维尔 (刚果共和国)',
+            'Africa/Bujumbura': '布琼布拉 (布隆迪)',
+            'Africa/Cairo': '开罗 (埃及)',
+            'Africa/Casablanca': '卡萨布兰卡 (摩洛哥)',
+            'Africa/Ceuta': '休达 (西班牙)',
+            'Africa/Conakry': '科纳克里 (几内亚)',
+            'Africa/Dakar': '达喀尔 (塞内加尔)',
+            'Africa/Dar_es_Salaam': '达累斯萨拉姆 (坦桑尼亚)',
+            'Africa/Djibouti': '吉布提 (吉布提)',
+            'Africa/Douala': '杜阿拉 (喀麦隆)',
+            'Africa/El_Aaiun': '阿尤恩 (西撒哈拉)',
+            'Africa/Freetown': '弗里敦 (塞拉利昂)',
+            'Africa/Gaborone': '哈博罗内 (博茨瓦纳)',
+            'Africa/Harare': '哈拉雷 (津巴布韦)',
+            'Africa/Johannesburg': '约翰内斯堡 (南非)',
+            'Africa/Juba': '朱巴 (南苏丹)',
+            'Africa/Kampala': '坎帕拉 (乌干达)',
+            'Africa/Khartoum': '喀土穆 (苏丹)',
+            'Africa/Kigali': '基加利 (卢旺达)',
+            'Africa/Kinshasa': '金沙萨 (刚果民主共和国)',
+            'Africa/Lagos': '拉各斯 (尼日利亚)',
+            'Africa/Libreville': '利伯维尔 (加蓬)',
+            'Africa/Lome': '洛美 (多哥)',
+            'Africa/Luanda': '罗安达 (安哥拉)',
+            'Africa/Lubumbashi': '卢本巴希 (刚果民主共和国)',
+            'Africa/Lusaka': '卢萨卡 (赞比亚)',
+            'Africa/Malabo': '马拉博 (赤道几内亚)',
+            'Africa/Maputo': '马普托 (莫桑比克)',
+            'Africa/Maseru': '马塞卢 (莱索托)',
+            'Africa/Mbabane': '姆巴巴纳 (斯威士兰)',
+            'Africa/Mogadishu': '摩加迪沙 (索马里)',
+            'Africa/Monrovia': '蒙罗维亚 (利比里亚)',
+            'Africa/Nairobi': '内罗毕 (肯尼亚)',
+            'Africa/Ndjamena': '恩贾梅纳 (乍得)',
+            'Africa/Niamey': '尼亚美 (尼日尔)',
+            'Africa/Nouakchott': '努瓦克肖特 (毛里塔尼亚)',
+            'Africa/Ouagadougou': '瓦加杜古 (布基纳法索)',
+            'Africa/Porto-Novo': '波多诺伏 (贝宁)',
+            'Africa/Sao_Tome': '圣多美 (圣多美和普林西比)',
+            'Africa/Tripoli': '的黎波里 (利比亚)',
+            'Africa/Tunis': '突尼斯 (突尼斯)',
+            'Africa/Windhoek': '温得和克 (纳米比亚)',
+            
+            // 南极洲时区
+            'Antarctica/Casey': '凯西站 (南极洲)',
+            'Antarctica/Davis': '戴维斯站 (南极洲)',
+            'Antarctica/DumontDUrville': '迪蒙迪维尔站 (南极洲)',
+            'Antarctica/Macquarie': '麦夸里岛 (南极洲)',
+            'Antarctica/Mawson': '莫森站 (南极洲)',
+            'Antarctica/McMurdo': '麦克默多站 (南极洲)',
+            'Antarctica/Palmer': '帕默站 (南极洲)',
+            'Antarctica/Rothera': '罗瑟拉站 (南极洲)',
+            'Antarctica/Syowa': '昭和站 (南极洲)',
+            'Antarctica/Troll': '特罗尔站 (南极洲)',
+            'Antarctica/Vostok': '沃斯托克站 (南极洲)',
+            
+            // 北极时区
+            'Arctic/Longyearbyen': '朗伊尔城 (挪威斯瓦尔巴)',
+            
+            // 亚洲时区
+            'Asia/Aden': '亚丁 (也门)',
+            'Asia/Almaty': '阿拉木图 (哈萨克斯坦)',
+            'Asia/Amman': '安曼 (约旦)',
+            'Asia/Anadyr': '阿纳德尔 (俄罗斯)',
+            'Asia/Aqtau': '阿克套 (哈萨克斯坦)',
+            'Asia/Aqtobe': '阿克托别 (哈萨克斯坦)',
+            'Asia/Ashgabat': '阿什哈巴德 (土库曼斯坦)',
+            'Asia/Atyrau': '阿特劳 (哈萨克斯坦)',
+            'Asia/Baghdad': '巴格达 (伊拉克)',
+            'Asia/Bahrain': '巴林 (巴林)',
+            'Asia/Baku': '巴库 (阿塞拜疆)',
+            'Asia/Bangkok': '曼谷 (泰国)',
+            'Asia/Barnaul': '巴尔瑙尔 (俄罗斯)',
+            'Asia/Beirut': '贝鲁特 (黎巴嫩)',
+            'Asia/Bishkek': '比什凯克 (吉尔吉斯斯坦)',
+            'Asia/Brunei': '斯里巴加湾市 (文莱)',
+            'Asia/Chita': '赤塔 (俄罗斯)',
+            'Asia/Choibalsan': '乔巴山 (蒙古)',
+            'Asia/Colombo': '科伦坡 (斯里兰卡)',
+            'Asia/Damascus': '大马士革 (叙利亚)',
+            'Asia/Dhaka': '达卡 (孟加拉国)',
+            'Asia/Dili': '帝力 (东帝汶)',
+            'Asia/Dubai': '迪拜 (阿联酋)',
+            'Asia/Dushanbe': '杜尚别 (塔吉克斯坦)',
+            'Asia/Famagusta': '法马古斯塔 (塞浦路斯)',
+            'Asia/Gaza': '加沙 (巴勒斯坦)',
+            'Asia/Hebron': '希伯伦 (巴勒斯坦)',
+            'Asia/Ho_Chi_Minh': '胡志明市 (越南)',
+            'Asia/Hong_Kong': '香港 (中国)',
+            'Asia/Hovd': '科布多 (蒙古)',
+            'Asia/Irkutsk': '伊尔库茨克 (俄罗斯)',
+            'Asia/Istanbul': '伊斯坦布尔 (土耳其)',
+            'Asia/Jakarta': '雅加达 (印度尼西亚)',
+            'Asia/Jayapura': '查亚普拉 (印度尼西亚)',
+            'Asia/Jerusalem': '耶路撒冷 (以色列)',
+            'Asia/Kabul': '喀布尔 (阿富汗)',
+            'Asia/Kamchatka': '堪察加 (俄罗斯)',
+            'Asia/Karachi': '卡拉奇 (巴基斯坦)',
+            'Asia/Kathmandu': '加德满都 (尼泊尔)',
+            'Asia/Khandyga': '汉德加 (俄罗斯)',
+            'Asia/Kolkata': '加尔各答 (印度)',
+            'Asia/Krasnoyarsk': '克拉斯诺亚尔斯克 (俄罗斯)',
+            'Asia/Kuala_Lumpur': '吉隆坡 (马来西亚)',
+            'Asia/Kuching': '古晋 (马来西亚)',
+            'Asia/Kuwait': '科威特城 (科威特)',
+            'Asia/Macau': '澳门 (中国)',
+            'Asia/Magadan': '马加丹 (俄罗斯)',
+            'Asia/Makassar': '望加锡 (印度尼西亚)',
+            'Asia/Manila': '马尼拉 (菲律宾)',
+            'Asia/Muscat': '马斯喀特 (阿曼)',
+            'Asia/Nicosia': '尼科西亚 (塞浦路斯)',
+            'Asia/Novokuznetsk': '新库兹涅茨克 (俄罗斯)',
+            'Asia/Novosibirsk': '新西伯利亚 (俄罗斯)',
+            'Asia/Omsk': '鄂木斯克 (俄罗斯)',
+            'Asia/Oral': '乌拉尔 (哈萨克斯坦)',
+            'Asia/Phnom_Penh': '金边 (柬埔寨)',
+            'Asia/Pontianak': '坤甸 (印度尼西亚)',
+            'Asia/Pyongyang': '平壤 (朝鲜)',
+            'Asia/Qatar': '多哈 (卡塔尔)',
+            'Asia/Qostanay': '科斯塔奈 (哈萨克斯坦)',
+            'Asia/Qyzylorda': '克孜勒奥尔达 (哈萨克斯坦)',
+            'Asia/Rangoon': '仰光 (缅甸)',
+            'Asia/Riyadh': '利雅得 (沙特阿拉伯)',
+            'Asia/Sakhalin': '萨哈林 (俄罗斯)',
+            'Asia/Samarkand': '撒马尔罕 (乌兹别克斯坦)',
+            'Asia/Seoul': '首尔 (韩国)',
+            'Asia/Shanghai': '上海 (中国)',
+            'Asia/Singapore': '新加坡 (新加坡)',
+            'Asia/Srednekolymsk': '中科雷姆斯克 (俄罗斯)',
+            'Asia/Taipei': '台北 (中国台湾)',
+            'Asia/Tashkent': '塔什干 (乌兹别克斯坦)',
+            'Asia/Tbilisi': '第比利斯 (格鲁吉亚)',
+            'Asia/Tehran': '德黑兰 (伊朗)',
+            'Asia/Thimphu': '廷布 (不丹)',
+            'Asia/Tokyo': '东京 (日本)',
+            'Asia/Tomsk': '托木斯克 (俄罗斯)',
+            'Asia/Ulaanbaatar': '乌兰巴托 (蒙古)',
+            'Asia/Urumqi': '乌鲁木齐 (中国)',
+            'Asia/Ust-Nera': '乌斯季涅拉 (俄罗斯)',
+            'Asia/Vientiane': '万象 (老挝)',
+            'Asia/Vladivostok': '符拉迪沃斯托克 (俄罗斯)',
+            'Asia/Yakutsk': '雅库茨克 (俄罗斯)',
+            'Asia/Yangon': '仰光 (缅甸)',
+            'Asia/Yekaterinburg': '叶卡捷琳堡 (俄罗斯)',
+            'Asia/Yerevan': '埃里温 (亚美尼亚)',
+            
+            // 大西洋时区
+            'Atlantic/Azores': '亚速尔群岛 (葡萄牙)',
+            'Atlantic/Bermuda': '百慕大 (英国)',
+            'Atlantic/Canary': '加那利群岛 (西班牙)',
+            'Atlantic/Cape_Verde': '佛得角 (佛得角)',
+            'Atlantic/Faroe': '法罗群岛 (丹麦)',
+            'Atlantic/Madeira': '马德拉群岛 (葡萄牙)',
+            'Atlantic/Reykjavik': '雷克雅未克 (冰岛)',
+            'Atlantic/South_Georgia': '南乔治亚岛 (英国)',
+            'Atlantic/St_Helena': '圣赫勒拿岛 (英国)',
+            'Atlantic/Stanley': '斯坦利 (福克兰群岛)',
+            
+            // 澳洲时区
+            'Australia/Adelaide': '阿德莱德 (澳大利亚)',
+            'Australia/Brisbane': '布里斯班 (澳大利亚)',
+            'Australia/Broken_Hill': '布罗肯希尔 (澳大利亚)',
+            'Australia/Currie': '柯里 (澳大利亚)',
+            'Australia/Darwin': '达尔文 (澳大利亚)',
+            'Australia/Eucla': '尤克拉 (澳大利亚)',
+            'Australia/Hobart': '霍巴特 (澳大利亚)',
+            'Australia/Lindeman': '林德曼 (澳大利亚)',
+            'Australia/Lord_Howe': '豪勋爵岛 (澳大利亚)',
+            'Australia/Melbourne': '墨尔本 (澳大利亚)',
+            'Australia/Perth': '珀斯 (澳大利亚)',
+            'Australia/Sydney': '悉尼 (澳大利亚)',
+            
+            // 欧洲时区
+            'Europe/Amsterdam': '阿姆斯特丹 (荷兰)',
+            'Europe/Andorra': '安道尔城 (安道尔)',
+            'Europe/Astrakhan': '阿斯特拉罕 (俄罗斯)',
+            'Europe/Athens': '雅典 (希腊)',
+            'Europe/Belgrade': '贝尔格莱德 (塞尔维亚)',
+            'Europe/Berlin': '柏林 (德国)',
+            'Europe/Bratislava': '布拉迪斯拉发 (斯洛伐克)',
+            'Europe/Brussels': '布鲁塞尔 (比利时)',
+            'Europe/Bucharest': '布加勒斯特 (罗马尼亚)',
+            'Europe/Budapest': '布达佩斯 (匈牙利)',
+            'Europe/Busingen': '比辛根 (德国)',
+            'Europe/Chisinau': '基希讷乌 (摩尔多瓦)',
+            'Europe/Copenhagen': '哥本哈根 (丹麦)',
+            'Europe/Dublin': '都柏林 (爱尔兰)',
+            'Europe/Gibraltar': '直布罗陀 (英国)',
+            'Europe/Guernsey': '根西岛 (英国)',
+            'Europe/Helsinki': '赫尔辛基 (芬兰)',
+            'Europe/Isle_of_Man': '马恩岛 (英国)',
+            'Europe/Istanbul': '伊斯坦布尔 (土耳其)',
+            'Europe/Jersey': '泽西岛 (英国)',
+            'Europe/Kaliningrad': '加里宁格勒 (俄罗斯)',
+            'Europe/Kiev': '基辅 (乌克兰)',
+            'Europe/Kirov': '基洛夫 (俄罗斯)',
+            'Europe/Lisbon': '里斯本 (葡萄牙)',
+            'Europe/Ljubljana': '卢布尔雅那 (斯洛文尼亚)',
+            'Europe/London': '伦敦 (英国)',
+            'Europe/Luxembourg': '卢森堡 (卢森堡)',
+            'Europe/Madrid': '马德里 (西班牙)',
+            'Europe/Malta': '瓦莱塔 (马耳他)',
+            'Europe/Mariehamn': '玛丽港 (芬兰)',
+            'Europe/Minsk': '明斯克 (白俄罗斯)',
+            'Europe/Monaco': '摩纳哥 (摩纳哥)',
+            'Europe/Moscow': '莫斯科 (俄罗斯)',
+            'Europe/Oslo': '奥斯陆 (挪威)',
+            'Europe/Paris': '巴黎 (法国)',
+            'Europe/Podgorica': '波德戈里察 (黑山)',
+            'Europe/Prague': '布拉格 (捷克)',
+            'Europe/Riga': '里加 (拉脱维亚)',
+            'Europe/Rome': '罗马 (意大利)',
+            'Europe/Samara': '萨马拉 (俄罗斯)',
+            'Europe/San_Marino': '圣马力诺 (圣马力诺)',
+            'Europe/Sarajevo': '萨拉热窝 (波黑)',
+            'Europe/Saratov': '萨拉托夫 (俄罗斯)',
+            'Europe/Simferopol': '辛菲罗波尔 (俄罗斯)',
+            'Europe/Skopje': '斯科普里 (北马其顿)',
+            'Europe/Sofia': '索菲亚 (保加利亚)',
+            'Europe/Stockholm': '斯德哥尔摩 (瑞典)',
+            'Europe/Tallinn': '塔林 (爱沙尼亚)',
+            'Europe/Tirane': '地拉那 (阿尔巴尼亚)',
+            'Europe/Ulyanovsk': '乌里扬诺夫斯克 (俄罗斯)',
+            'Europe/Uzhgorod': '乌日哥罗德 (乌克兰)',
+            'Europe/Vaduz': '瓦杜兹 (列支敦士登)',
+            'Europe/Vatican': '梵蒂冈 (梵蒂冈)',
+            'Europe/Vienna': '维也纳 (奥地利)',
+            'Europe/Vilnius': '维尔纽斯 (立陶宛)',
+            'Europe/Volgograd': '伏尔加格勒 (俄罗斯)',
+            'Europe/Warsaw': '华沙 (波兰)',
+            'Europe/Zagreb': '萨格勒布 (克罗地亚)',
+            'Europe/Zaporozhye': '扎波罗热 (乌克兰)',
+            'Europe/Zurich': '苏黎世 (瑞士)',
+            
+            // 印度洋时区
+            'Indian/Antananarivo': '塔那那利佛 (马达加斯加)',
+            'Indian/Chagos': '查戈斯群岛 (英国)',
+            'Indian/Christmas': '圣诞岛 (澳大利亚)',
+            'Indian/Cocos': '科科斯群岛 (澳大利亚)',
+            'Indian/Comoro': '科摩罗 (科摩罗)',
+            'Indian/Kerguelen': '凯尔盖朗群岛 (法国)',
+            'Indian/Mahe': '马埃岛 (塞舌尔)',
+            'Indian/Maldives': '马尔代夫 (马尔代夫)',
+            'Indian/Mauritius': '毛里求斯 (毛里求斯)',
+            'Indian/Mayotte': '马约特岛 (法国)',
+            'Indian/Reunion': '留尼汪岛 (法国)',
+            
+            // 太平洋时区
+            'Pacific/Apia': '阿皮亚 (萨摩亚)',
+            'Pacific/Auckland': '奥克兰 (新西兰)',
+            'Pacific/Bougainville': '布干维尔 (巴布亚新几内亚)',
+            'Pacific/Chatham': '查塔姆群岛 (新西兰)',
+            'Pacific/Chuuk': '楚克 (密克罗尼西亚)',
+            'Pacific/Easter': '复活节岛 (智利)',
+            'Pacific/Efate': '埃法特岛 (瓦努阿图)',
+            'Pacific/Enderbury': '恩德伯里岛 (基里巴斯)',
+            'Pacific/Fakaofo': '法考福 (托克劳)',
+            'Pacific/Fiji': '苏瓦 (斐济)',
+            'Pacific/Funafuti': '富纳富提 (图瓦卢)',
+            'Pacific/Galapagos': '加拉帕戈斯群岛 (厄瓜多尔)',
+            'Pacific/Gambier': '甘比尔群岛 (法国)',
+            'Pacific/Guadalcanal': '瓜达尔卡纳尔岛 (所罗门群岛)',
+            'Pacific/Guam': '关岛 (美国)',
+            'Pacific/Honolulu': '檀香山 (美国)',
+            'Pacific/Kiritimati': '基里蒂马蒂岛 (基里巴斯)',
+            'Pacific/Kosrae': '科斯雷 (密克罗尼西亚)',
+            'Pacific/Kwajalein': '夸贾林环礁 (马绍尔群岛)',
+            'Pacific/Majuro': '马朱罗 (马绍尔群岛)',
+            'Pacific/Marquesas': '马克萨斯群岛 (法国)',
+            'Pacific/Midway': '中途岛 (美国)',
+            'Pacific/Nauru': '瑙鲁 (瑙鲁)',
+            'Pacific/Niue': '纽埃 (纽埃)',
+            'Pacific/Norfolk': '诺福克岛 (澳大利亚)',
+            'Pacific/Noumea': '努美阿 (新喀里多尼亚)',
+            'Pacific/Pago_Pago': '帕果帕果 (美属萨摩亚)',
+            'Pacific/Palau': '科罗尔 (帕劳)',
+            'Pacific/Pitcairn': '皮特凯恩岛 (英国)',
+            'Pacific/Pohnpei': '波纳佩 (密克罗尼西亚)',
+            'Pacific/Port_Moresby': '莫尔兹比港 (巴布亚新几内亚)',
+            'Pacific/Rarotonga': '拉罗汤加岛 (库克群岛)',
+            'Pacific/Saipan': '塞班岛 (美国)',
+            'Pacific/Tahiti': '塔希提岛 (法国)',
+            'Pacific/Tarawa': '塔拉瓦 (基里巴斯)',
+            'Pacific/Tongatapu': '努库阿洛法 (汤加)',
+            'Pacific/Wake': '威克岛 (美国)',
+            'Pacific/Wallis': '瓦利斯岛 (法国)',
+            
+            // 美洲时区
+            'America/Adak': '阿达克岛 (美国)',
+            'America/Anchorage': '安克雷奇 (美国)',
+            'America/Anguilla': '安圭拉 (英国)',
+            'America/Antigua': '安提瓜 (安提瓜和巴布达)',
+            'America/Araguaina': '阿拉瓜伊纳 (巴西)',
+            'America/Argentina/Buenos_Aires': '布宜诺斯艾利斯 (阿根廷)',
+            'America/Argentina/Catamarca': '卡塔马卡 (阿根廷)',
+            'America/Argentina/Cordoba': '科尔多瓦 (阿根廷)',
+            'America/Argentina/Jujuy': '胡胡伊 (阿根廷)',
+            'America/Argentina/La_Rioja': '拉里奥哈 (阿根廷)',
+            'America/Argentina/Mendoza': '门多萨 (阿根廷)',
+            'America/Argentina/Rio_Gallegos': '里奥加耶戈斯 (阿根廷)',
+            'America/Argentina/Salta': '萨尔塔 (阿根廷)',
+            'America/Argentina/San_Juan': '圣胡安 (阿根廷)',
+            'America/Argentina/San_Luis': '圣路易斯 (阿根廷)',
+            'America/Argentina/Tucuman': '图库曼 (阿根廷)',
+            'America/Argentina/Ushuaia': '乌斯怀亚 (阿根廷)',
+            'America/Aruba': '奥拉涅斯塔德 (阿鲁巴)',
+            'America/Asuncion': '亚松森 (巴拉圭)',
+            'America/Atikokan': '阿蒂科坎 (加拿大)',
+            'America/Bahia': '萨尔瓦多 (巴西)',
+            'America/Bahia_Banderas': '巴伊亚班德拉斯 (墨西哥)',
+            'America/Barbados': '布里奇敦 (巴巴多斯)',
+            'America/Belem': '贝伦 (巴西)',
+            'America/Belize': '贝尔莫潘 (伯利兹)',
+            'America/Blanc-Sablon': '布朗萨布隆 (加拿大)',
+            'America/Boa_Vista': '博阿维斯塔 (巴西)',
+            'America/Bogota': '波哥大 (哥伦比亚)',
+            'America/Boise': '博伊西 (美国)',
+            'America/Cambridge_Bay': '剑桥湾 (加拿大)',
+            'America/Campo_Grande': '大坎普 (巴西)',
+            'America/Cancun': '坎昆 (墨西哥)',
+            'America/Caracas': '加拉加斯 (委内瑞拉)',
+            'America/Cayenne': '卡宴 (法属圭亚那)',
+            'America/Cayman': '乔治敦 (开曼群岛)',
+            'America/Chicago': '芝加哥 (美国)',
+            'America/Chihuahua': '奇瓦瓦 (墨西哥)',
+            'America/Costa_Rica': '圣何塞 (哥斯达黎加)',
+            'America/Creston': '克雷斯顿 (加拿大)',
+            'America/Cuiaba': '库亚巴 (巴西)',
+            'America/Curacao': '威廉斯塔德 (库拉索)',
+            'America/Danmarkshavn': '丹麦港 (格陵兰)',
+            'America/Dawson': '道森 (加拿大)',
+            'America/Dawson_Creek': '道森克里克 (加拿大)',
+            'America/Denver': '丹佛 (美国)',
+            'America/Detroit': '底特律 (美国)',
+            'America/Dominica': '罗索 (多米尼克)',
+            'America/Edmonton': '埃德蒙顿 (加拿大)',
+            'America/Eirunepe': '埃鲁内佩 (巴西)',
+            'America/El_Salvador': '圣萨尔瓦多 (萨尔瓦多)',
+            'America/Fort_Nelson': '纳尔逊堡 (加拿大)',
+            'America/Fortaleza': '福塔雷萨 (巴西)',
+            'America/Glace_Bay': '格雷斯湾 (加拿大)',
+            'America/Godthab': '努克 (格陵兰)',
+            'America/Goose_Bay': '鹅湾 (加拿大)',
+            'America/Grand_Turk': '科伯恩城 (特克斯和凯科斯群岛)',
+            'America/Grenada': '圣乔治 (格林纳达)',
+            'America/Guadeloupe': '巴斯特尔 (瓜德罗普)',
+            'America/Guatemala': '危地马拉城 (危地马拉)',
+            'America/Guayaquil': '瓜亚基尔 (厄瓜多尔)',
+            'America/Guyana': '乔治敦 (圭亚那)',
+            'America/Halifax': '哈利法克斯 (加拿大)',
+            'America/Havana': '哈瓦那 (古巴)',
+            'America/Hermosillo': '埃莫西约 (墨西哥)',
+            'America/Indiana/Indianapolis': '印第安纳波利斯 (美国)',
+            'America/Indiana/Knox': '诺克斯 (美国)',
+            'America/Indiana/Marengo': '马伦戈 (美国)',
+            'America/Indiana/Petersburg': '彼得斯堡 (美国)',
+            'America/Indiana/Tell_City': '特尔城 (美国)',
+            'America/Indiana/Vevay': '维维 (美国)',
+            'America/Indiana/Vincennes': '温森斯 (美国)',
+            'America/Indiana/Winamac': '威纳马克 (美国)',
+            'America/Inuvik': '伊努维克 (加拿大)',
+            'America/Iqaluit': '伊魁特 (加拿大)',
+            'America/Jamaica': '金斯敦 (牙买加)',
+            'America/Juneau': '朱诺 (美国)',
+            'America/Kentucky/Louisville': '路易斯维尔 (美国)',
+            'America/Kentucky/Monticello': '蒙蒂塞洛 (美国)',
+            'America/Kralendijk': '克拉伦代克 (荷属安的列斯)',
+            'America/La_Paz': '拉巴斯 (玻利维亚)',
+            'America/Lima': '利马 (秘鲁)',
+            'America/Los_Angeles': '洛杉矶 (美国)',
+            'America/Lower_Princes': '下太子区 (荷属安的列斯)',
+            'America/Maceio': '马塞约 (巴西)',
+            'America/Managua': '马那瓜 (尼加拉瓜)',
+            'America/Manaus': '马瑙斯 (巴西)',
+            'America/Marigot': '马里戈特 (法属圣马丁)',
+            'America/Martinique': '法兰西堡 (马提尼克)',
+            'America/Matamoros': '马塔莫罗斯 (墨西哥)',
+            'America/Mazatlan': '马萨特兰 (墨西哥)',
+            'America/Menominee': '梅诺米尼 (美国)',
+            'America/Merida': '梅里达 (墨西哥)',
+            'America/Metlakatla': '梅特拉卡特拉 (美国)',
+            'America/Mexico_City': '墨西哥城 (墨西哥)',
+            'America/Miquelon': '圣皮埃尔 (圣皮埃尔和密克隆)',
+            'America/Moncton': '蒙克顿 (加拿大)',
+            'America/Monterrey': '蒙特雷 (墨西哥)',
+            'America/Montevideo': '蒙得维的亚 (乌拉圭)',
+            'America/Montserrat': '普利茅斯 (蒙特塞拉特)',
+            'America/Nassau': '拿骚 (巴哈马)',
+            'America/New_York': '纽约 (美国)',
+            'America/Nipigon': '尼皮贡 (加拿大)',
+            'America/Nome': '诺姆 (美国)',
+            'America/Noronha': '费尔南多·迪诺罗尼亚 (巴西)',
+            'America/North_Dakota/Beulah': '比尤拉 (美国)',
+            'America/North_Dakota/Center': '中心 (美国)',
+            'America/North_Dakota/New_Salem': '新塞勒姆 (美国)',
+            'America/Ojinaga': '奥希纳加 (墨西哥)',
+            'America/Panama': '巴拿马城 (巴拿马)',
+            'America/Pangnirtung': '庞尼唐 (加拿大)',
+            'America/Paramaribo': '帕拉马里博 (苏里南)',
+            'America/Phoenix': '凤凰城 (美国)',
+            'America/Port-au-Prince': '太子港 (海地)',
+            'America/Port_of_Spain': '西班牙港 (特立尼达和多巴哥)',
+            'America/Porto_Velho': '波多韦柳 (巴西)',
+            'America/Puerto_Rico': '圣胡安 (波多黎各)',
+            'America/Punta_Arenas': '蓬塔阿雷纳斯 (智利)',
+            'America/Rainy_River': '雷尼河 (加拿大)',
+            'America/Rankin_Inlet': '兰金因莱特 (加拿大)',
+            'America/Recife': '累西腓 (巴西)',
+            'America/Regina': '里贾纳 (加拿大)',
+            'America/Resolute': '雷索卢特 (加拿大)',
+            'America/Rio_Branco': '里约布兰科 (巴西)',
+            'America/Santarem': '圣塔伦 (巴西)',
+            'America/Santiago': '圣地亚哥 (智利)',
+            'America/Santo_Domingo': '圣多明各 (多米尼加共和国)',
+            'America/Sao_Paulo': '圣保罗 (巴西)',
+            'America/Scoresbysund': '斯科斯比松 (格陵兰)',
+            'America/Sitka': '锡特卡 (美国)',
+            'America/St_Barthelemy': '古斯塔维亚 (圣巴泰勒米)',
+            'America/St_Johns': '圣约翰斯 (加拿大)',
+            'America/St_Kitts': '巴斯特尔 (圣基茨和尼维斯)',
+            'America/St_Lucia': '卡斯特里 (圣卢西亚)',
+            'America/St_Thomas': '夏洛特阿马利亚 (美属维尔京群岛)',
+            'America/St_Vincent': '金斯敦 (圣文森特和格林纳丁斯)',
+            'America/Swift_Current': '斯威夫特卡伦特 (加拿大)',
+            'America/Tegucigalpa': '特古西加尔巴 (洪都拉斯)',
+            'America/Thule': '图勒 (格陵兰)',
+            'America/Thunder_Bay': '桑德贝 (加拿大)',
+            'America/Tijuana': '蒂华纳 (墨西哥)',
+            'America/Toronto': '多伦多 (加拿大)',
+            'America/Tortola': '罗德城 (英属维尔京群岛)',
+            'America/Vancouver': '温哥华 (加拿大)',
+            'America/Whitehorse': '白马市 (加拿大)',
+            'America/Winnipeg': '温尼伯 (加拿大)',
+            'America/Yakutat': '雅库塔特 (美国)',
+            'America/Yellowknife': '黄刀镇 (加拿大)'
+        };
+
+        function initializeTimezoneSelect() {
+            const select = document.getElementById('timezoneSelect');
+            select.innerHTML = '';
+            
+            // 获取当前语言的时区名称
+            const currentTimezoneNames = timezoneNames[currentLanguage] || timezoneNames.zh;
+            
+            // 将时区转换为数组并按UTC偏移量排序
+            const sortedTimezones = Object.entries(currentTimezoneNames).sort((a, b) => {
+                // 获取标准时间UTC偏移量（使用1月份避免夏令时影响）
+                const january = new Date(new Date().getFullYear(), 0, 1);
+                function getTimezoneOffset(date, tz) {
+                    // 获取实际时区标识符
+                    const actualTz = getActualTimezone(tz);
+                    // 特殊处理UTC时区
+                    if (actualTz === 'UTC') {
+                        return 0;
+                    }
+                    // 使用Intl.DateTimeFormat获取时区偏移量
+                    const formatter = new Intl.DateTimeFormat('en', {
+                        timeZone: actualTz,
+                        timeZoneName: 'longOffset'
+                    });
+                    const parts = formatter.formatToParts(date);
+                    const offsetPart = parts.find(part => part.type === 'timeZoneName');
+                    if (offsetPart && offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/)) {
+                        const match = offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/);
+                        const hours = parseInt(match[1]);
+                        const minutes = parseInt(match[2] || '0');
+                        return hours + (minutes / 60) * (hours >= 0 ? 1 : -1);
+                    }
+                    // 备用方法
+                    const utcTime = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                    const tzTime = new Date(utcTime.toLocaleString('en-US', {timeZone: actualTz}));
+                    return (tzTime.getTime() - utcTime.getTime()) / (1000 * 60 * 60);
+                }
+                const offsetA = getTimezoneOffset(january, a[0]);
+                const offsetB = getTimezoneOffset(january, b[0]);
+                // 按偏移量排序，如果偏移量相同则按名称排序
+                if (offsetA !== offsetB) {
+                    return offsetA - offsetB;
+                }
+                return a[1].localeCompare(b[1]);
+            });
+            
+            sortedTimezones.forEach(([timezone, name]) => {
+                const option = document.createElement('option');
+                option.value = timezone;
+                
+                // 获取标准时间UTC偏移量（使用1月份避免夏令时影响）
+                const january = new Date(new Date().getFullYear(), 0, 1);
+                function getTimezoneOffset(date, tz) {
+                    // 获取实际时区标识符
+                    const actualTz = getActualTimezone(tz);
+                    // 特殊处理UTC时区
+                    if (actualTz === 'UTC') {
+                        return 0;
+                    }
+                    // 使用Intl.DateTimeFormat获取时区偏移量
+                    const formatter = new Intl.DateTimeFormat('en', {
+                        timeZone: actualTz,
+                        timeZoneName: 'longOffset'
+                    });
+                    const parts = formatter.formatToParts(date);
+                    const offsetPart = parts.find(part => part.type === 'timeZoneName');
+                    if (offsetPart && offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/)) {
+                        const match = offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/);
+                        const hours = parseInt(match[1]);
+                        const minutes = parseInt(match[2] || '0');
+                        return hours + (minutes / 60) * (hours >= 0 ? 1 : -1);
+                    }
+                    // 备用方法
+                    const utcTime = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                    const tzTime = new Date(utcTime.toLocaleString('en-US', {timeZone: actualTz}));
+                    return (tzTime.getTime() - utcTime.getTime()) / (1000 * 60 * 60);
+                }
+                const standardOffset = getTimezoneOffset(january, timezone);
+                
+                // 格式化UTC偏移量显示
+                const offsetHours = Math.floor(Math.abs(standardOffset));
+                const offsetMinutes = Math.round((Math.abs(standardOffset) - offsetHours) * 60);
+                const offsetSign = standardOffset >= 0 ? '+' : '-';
+                const offsetDisplay = `(${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')})`;
+                
+                option.textContent = `${offsetDisplay} ${name} (${timezone})`; // 显示偏移量、友好名称和timezone
+                select.appendChild(option);
+            });
+        }
+
+        function filterTimezones() {
+            const searchInput = document.getElementById('timezoneSearch');
+            const select = document.getElementById('timezoneSelect');
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            select.innerHTML = '';
+            
+            // 获取当前语言的时区名称
+            const currentTimezoneNames = timezoneNames[currentLanguage] || timezoneNames.zh;
+            
+            // 过滤并排序时区
+            const filteredTimezones = Object.entries(currentTimezoneNames)
+                .filter(([timezone, name]) => {
+                    return name.toLowerCase().includes(searchTerm) || timezone.toLowerCase().includes(searchTerm);
+                })
+                .sort((a, b) => {
+                    // 获取标准时间UTC偏移量（使用1月份避免夏令时影响）
+                    const january = new Date(new Date().getFullYear(), 0, 1);
+                    function getTimezoneOffset(date, tz) {
+                        // 获取实际时区标识符
+                        const actualTz = getActualTimezone(tz);
+                        // 特殊处理UTC时区
+                        if (actualTz === 'UTC') {
+                            return 0;
+                        }
+                        // 使用Intl.DateTimeFormat获取时区偏移量
+                        const formatter = new Intl.DateTimeFormat('en', {
+                            timeZone: actualTz,
+                            timeZoneName: 'longOffset'
+                        });
+                        const parts = formatter.formatToParts(date);
+                        const offsetPart = parts.find(part => part.type === 'timeZoneName');
+                        if (offsetPart && offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/)) {
+                            const match = offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/);
+                            const hours = parseInt(match[1]);
+                            const minutes = parseInt(match[2] || '0');
+                            return hours + (minutes / 60) * (hours >= 0 ? 1 : -1);
+                        }
+                        // 备用方法
+                        const utcTime = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                        const tzTime = new Date(utcTime.toLocaleString('en-US', {timeZone: actualTz}));
+                        return (tzTime.getTime() - utcTime.getTime()) / (1000 * 60 * 60);
+                    }
+                    const offsetA = getTimezoneOffset(january, a[0]);
+                    const offsetB = getTimezoneOffset(january, b[0]);
+                    // 按偏移量排序，如果偏移量相同则按名称排序
+                    if (offsetA !== offsetB) {
+                        return offsetA - offsetB;
+                    }
+                    return a[1].localeCompare(b[1]);
+                });
+            
+            filteredTimezones.forEach(([timezone, name]) => {
+                const option = document.createElement('option');
+                option.value = timezone;
+                
+                // 获取标准时间UTC偏移量（使用1月份避免夏令时影响）
+                const january = new Date(new Date().getFullYear(), 0, 1);
+                function getTimezoneOffset(date, tz) {
+                    // 获取实际时区标识符
+                    const actualTz = getActualTimezone(tz);
+                    // 特殊处理UTC时区
+                    if (actualTz === 'UTC') {
+                        return 0;
+                    }
+                    // 使用Intl.DateTimeFormat获取时区偏移量
+                    const formatter = new Intl.DateTimeFormat('en', {
+                        timeZone: actualTz,
+                        timeZoneName: 'longOffset'
+                    });
+                    const parts = formatter.formatToParts(date);
+                    const offsetPart = parts.find(part => part.type === 'timeZoneName');
+                    if (offsetPart && offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/)) {
+                        const match = offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/);
+                        const hours = parseInt(match[1]);
+                        const minutes = parseInt(match[2] || '0');
+                        return hours + (minutes / 60) * (hours >= 0 ? 1 : -1);
+                    }
+                    // 备用方法
+                    const utcTime = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                    const tzTime = new Date(utcTime.toLocaleString('en-US', {timeZone: actualTz}));
+                    return (tzTime.getTime() - utcTime.getTime()) / (1000 * 60 * 60);
+                }
+                const standardOffset = getTimezoneOffset(january, timezone);
+                
+                // 格式化UTC偏移量显示
+                const offsetHours = Math.floor(Math.abs(standardOffset));
+                const offsetMinutes = Math.round((Math.abs(standardOffset) - offsetHours) * 60);
+                const offsetSign = standardOffset >= 0 ? '+' : '-';
+                const offsetDisplay = `(${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')})`;                
+                
+                option.textContent = `${offsetDisplay} ${name} (${timezone})`; // 显示偏移量、友好名称和timezone
+                select.appendChild(option);
+            });
+        }
+
+        function addTimezone() {
+            const select = document.getElementById('timezoneSelect');
+            const timezone = select.value;
+            
+            if (!timezone) {
+                alert(translations[currentLanguage].noTimezoneMessage || '请先选择一个时区！');
+                return;
+            }
+            
+            if (selectedTimezones.length >= 4) {
+                alert('最多只能添加4个时区进行对比！');
+                return;
+            }
+            
+            if (!selectedTimezones.includes(timezone)) {
+                selectedTimezones.push(timezone);
+                updateTimezoneList();
+                updateComparison();
+            } else {
+                alert('该时区已经添加过了！');
+            }
+        }
+
+        function removeTimezone(timezone) {
+            selectedTimezones = selectedTimezones.filter(tz => tz !== timezone);
+            updateTimezoneList();
+            updateComparison();
+        }
+
+        function updateTimezoneList() {
+            const listContainer = document.getElementById('timezoneList');
+            const countElement = document.getElementById('timezoneCount');
+            
+            listContainer.innerHTML = '';
+            countElement.textContent = selectedTimezones.length;
+            
+            selectedTimezones.forEach(timezone => {
+                const item = document.createElement('div');
+                item.className = 'timezone-item';
+                item.innerHTML = `
+                    <span>${getTimezoneDisplayName(timezone)}</span>
+                    <button class="remove-btn" onclick="removeTimezone('${timezone}')">${translations[currentLanguage].removeBtn}</button>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        function setCurrentTime() {
+            const now = new Date();
+            const localISOTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            document.getElementById('baseTime').value = localISOTime;
+        }
+
+        function updateComparison() {
+            const baseTimeInput = document.getElementById('baseTime').value;
+            if (!baseTimeInput) {
+                alert(translations[currentLanguage].noTimezoneMessage || '请先设置基准时间！');
+                return;
+            }
+
+            const baseTime = new Date(baseTimeInput);
+            const resultContainer = document.getElementById('comparisonResult');
+            
+            // 如果没有选择时区，显示提示信息
+            if (selectedTimezones.length === 0) {
+                resultContainer.innerHTML = `<p class="no-timezone-message">${translations[currentLanguage].noTimezoneMessage}</p>`;
+                return;
+            }
+            
+            // 生成表格形式的时区对比表
+            const t = translations[currentLanguage];
+            let comparisonHTML = `
+                <h3>${t.time}对比表</h3>
+                <p>基准时间: ${baseTime.toLocaleString('zh-CN')} (本地时间)</p>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>${t.time}</th>
+            `;
+            
+            // 添加时区表头
+             selectedTimezones.forEach(timezone => {
+                 const timezoneName = getTimezoneDisplayName(timezone);
+                 
+                 // 检测夏令时和获取UTC偏移量
+                 const now = new Date();
+                 const january = new Date(now.getFullYear(), 0, 1);
+                 const july = new Date(now.getFullYear(), 6, 1);
+                 
+                 const januaryOffset = january.toLocaleString('en', {timeZone: timezone}).match(/GMT([+-]\d+)/) || 
+                                     [null, new Date(january.toLocaleString('en-US', {timeZone: timezone})).getTimezoneOffset() / -60];
+                 const julyOffset = july.toLocaleString('en', {timeZone: timezone}).match(/GMT([+-]\d+)/) || 
+                                   [null, new Date(july.toLocaleString('en-US', {timeZone: timezone})).getTimezoneOffset() / -60];
+                 const currentOffset = new Date(now.toLocaleString('en-US', {timeZone: timezone})).getTimezoneOffset() / -60;
+                 
+                 // 简化的夏令时检测：比较1月和7月的时区偏移
+                 const jan1 = new Date(now.getFullYear(), 0, 1);
+                 const jul1 = new Date(now.getFullYear(), 6, 1);
+                 
+                 // 使用更准确的方法计算时区偏移量
+                 function getTimezoneOffset(date, tz) {
+                     // 获取实际时区标识符
+                     const actualTz = getActualTimezone(tz);
+                     // 特殊处理UTC时区
+                     if (actualTz === 'UTC') {
+                         return 0;
+                     }
+                     // 使用Intl.DateTimeFormat获取时区偏移量
+                     const formatter = new Intl.DateTimeFormat('en', {
+                         timeZone: actualTz,
+                         timeZoneName: 'longOffset'
+                     });
+                     const parts = formatter.formatToParts(date);
+                     const offsetPart = parts.find(part => part.type === 'timeZoneName');
+                     if (offsetPart && offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/)) {
+                         const match = offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/);
+                         const hours = parseInt(match[1]);
+                         const minutes = parseInt(match[2] || '0');
+                         return hours + (minutes / 60) * (hours >= 0 ? 1 : -1);
+                     }
+                     // 备用方法
+                     const utcTime = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                     const tzTime = new Date(utcTime.toLocaleString('en-US', {timeZone: actualTz}));
+                     return (tzTime.getTime() - utcTime.getTime()) / (1000 * 60 * 60);
+                 }
+                 
+                 const janOffset = getTimezoneOffset(jan1, timezone);
+                 const julOffset = getTimezoneOffset(jul1, timezone);
+                 const nowOffset = getTimezoneOffset(now, timezone);
+                 
+                 // 使用标准时间偏移量（通常是冬季时间，即较小的偏移量）
+                 const standardOffset = Math.min(janOffset, julOffset);
+                 
+                 let dstIndicator = '';
+                 if (Math.abs(janOffset - julOffset) > 0) {
+                     // 该时区有夏令时
+                     if (nowOffset === Math.max(janOffset, julOffset)) {
+                         dstIndicator = ` (${t.isDst})`;
+                     } else {
+                         dstIndicator = '';
+                     }
+                 }
+                 
+                 // 格式化UTC偏移量显示（使用标准时间偏移量）
+                 const offsetHours = Math.floor(Math.abs(standardOffset));
+                 const offsetMinutes = Math.round((Math.abs(standardOffset) - offsetHours) * 60);
+                 const offsetSign = standardOffset >= 0 ? '+' : '-';
+                 const offsetDisplay = `(${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')})`;
+                 
+                 comparisonHTML += `<th>${offsetDisplay} ${timezoneName}${dstIndicator}</th>`;
+             });
+            
+            comparisonHTML += `
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // 生成24小时的数据行
+             for (let hour = 0; hour < 24; hour++) {
+                 // 创建整点时间（分钟设为00）
+                 const currentTime = new Date(baseTime);
+                 currentTime.setHours(hour, 0, 0, 0);
+                 
+                 const isCurrentHour = hour === baseTime.getHours(); // 高亮当前基准时间
+                 
+                 let rowClass = '';
+                 if (isCurrentHour) {
+                     rowClass = 'current-time';
+                 }
+                 
+                 comparisonHTML += `<tr class="${rowClass}" data-hour="${hour}">`;
+                 
+                 // 基准时间列（只显示小时，分钟固定为00）
+                 const baseTimeString = currentTime.toLocaleTimeString('zh-CN', {
+                     hour: '2-digit',
+                     minute: '2-digit',
+                     hour12: false
+                 });
+                 
+                 const baseDateInfo = currentTime.toLocaleDateString('zh-CN', {
+                     weekday: 'short'
+                 });
+                 
+                 // 判断基准时间是否为工作时间
+                 const baseTimeHour = hour;
+                 const baseIsWorkingHours = baseTimeHour >= 8 && baseTimeHour < 18;
+                 const baseCellClass = baseIsWorkingHours ? 'working-hours' : '';
+                 
+                 comparisonHTML += `<td class="${baseCellClass}"><div class="time-display">${baseDateInfo} ${baseTimeString}</div></td>`;
+                
+                // 各时区时间列
+                selectedTimezones.forEach(timezone => {
+                    const actualTimezone = getActualTimezone(timezone);
+                    const timeString = currentTime.toLocaleTimeString('zh-CN', {
+                        timeZone: actualTimezone,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+                    
+                    const dateInfo = currentTime.toLocaleDateString('zh-CN', {
+                        timeZone: actualTimezone,
+                        weekday: 'short'
+                    });
+                    
+                    // 获取该时区的本地小时数来判断是否为工作时间
+                    const timezoneDate = new Date(currentTime.toLocaleString('en-US', { timeZone: actualTimezone }));
+                    const timezoneHour = timezoneDate.getHours();
+                    const timezoneIsWorkingHours = timezoneHour >= 8 && timezoneHour < 18;
+                    const timezoneCellClass = timezoneIsWorkingHours ? 'working-hours' : '';
+                    
+                    comparisonHTML += `<td class="${timezoneCellClass}"><div class="time-display">${dateInfo} ${timeString}</div></td>`;
+                });
+                
+                comparisonHTML += `</tr>`;
+            }
+            
+            comparisonHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            resultContainer.innerHTML = comparisonHTML;
+        }
+        
+
+
+        // 页面加载时初始化
+        window.onload = function() {
+            updateUILanguage();
+            initializeTimezoneSelect();
+            setCurrentTime();
+            updateTimezoneList();
+            updateComparison();
+        };
+    </script>
+</body>
+</html>
