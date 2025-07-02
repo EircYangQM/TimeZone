@@ -1537,72 +1537,77 @@
              selectedTimezones.forEach(timezone => {
                  const timezoneName = getTimezoneDisplayName(timezone);
                  
-                 // 检测夏令时和获取UTC偏移量
-                 const now = new Date();
-                 const january = new Date(now.getFullYear(), 0, 1);
-                 const july = new Date(now.getFullYear(), 6, 1);
-                 
-                 const januaryOffset = january.toLocaleString('en', {timeZone: timezone}).match(/GMT([+-]\d+)/) || 
-                                     [null, new Date(january.toLocaleString('en-US', {timeZone: timezone})).getTimezoneOffset() / -60];
-                 const julyOffset = july.toLocaleString('en', {timeZone: timezone}).match(/GMT([+-]\d+)/) || 
-                                   [null, new Date(july.toLocaleString('en-US', {timeZone: timezone})).getTimezoneOffset() / -60];
-                 const currentOffset = new Date(now.toLocaleString('en-US', {timeZone: timezone})).getTimezoneOffset() / -60;
-                 
-                 // 简化的夏令时检测：比较1月和7月的时区偏移
-                 const jan1 = new Date(now.getFullYear(), 0, 1);
-                 const jul1 = new Date(now.getFullYear(), 6, 1);
-                 
-                 // 使用更准确的方法计算时区偏移量
-                 function getTimezoneOffset(date, tz) {
-                     // 获取实际时区标识符
-                     const actualTz = getActualTimezone(tz);
-                     // 特殊处理UTC时区
-                     if (actualTz === 'UTC') {
-                         return 0;
+                 try {
+                     // 检测夏令时和获取UTC偏移量
+                     const now = new Date();
+                     const january = new Date(now.getFullYear(), 0, 1);
+                     const july = new Date(now.getFullYear(), 6, 1);
+                     
+                     const januaryOffset = january.toLocaleString('en', {timeZone: timezone}).match(/GMT([+-]\d+)/) || 
+                                         [null, new Date(january.toLocaleString('en-US', {timeZone: timezone})).getTimezoneOffset() / -60];
+                     const julyOffset = july.toLocaleString('en', {timeZone: timezone}).match(/GMT([+-]\d+)/) || 
+                                       [null, new Date(july.toLocaleString('en-US', {timeZone: timezone})).getTimezoneOffset() / -60];
+                     const currentOffset = new Date(now.toLocaleString('en-US', {timeZone: timezone})).getTimezoneOffset() / -60;
+                     
+                     // 简化的夏令时检测：比较1月和7月的时区偏移
+                     const jan1 = new Date(now.getFullYear(), 0, 1);
+                     const jul1 = new Date(now.getFullYear(), 6, 1);
+                     
+                     // 使用更准确的方法计算时区偏移量
+                     function getTimezoneOffset(date, tz) {
+                         // 获取实际时区标识符
+                         const actualTz = getActualTimezone(tz);
+                         // 特殊处理UTC时区
+                         if (actualTz === 'UTC') {
+                             return 0;
+                         }
+                         // 使用Intl.DateTimeFormat获取时区偏移量
+                         const formatter = new Intl.DateTimeFormat('en', {
+                             timeZone: actualTz,
+                             timeZoneName: 'longOffset'
+                         });
+                         const parts = formatter.formatToParts(date);
+                         const offsetPart = parts.find(part => part.type === 'timeZoneName');
+                         if (offsetPart && offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/)) {
+                             const match = offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/);
+                             const hours = parseInt(match[1]);
+                             const minutes = parseInt(match[2] || '0');
+                             return hours + (minutes / 60) * (hours >= 0 ? 1 : -1);
+                         }
+                         // 备用方法
+                         const utcTime = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+                         const tzTime = new Date(utcTime.toLocaleString('en-US', {timeZone: actualTz}));
+                         return (tzTime.getTime() - utcTime.getTime()) / (1000 * 60 * 60);
                      }
-                     // 使用Intl.DateTimeFormat获取时区偏移量
-                     const formatter = new Intl.DateTimeFormat('en', {
-                         timeZone: actualTz,
-                         timeZoneName: 'longOffset'
-                     });
-                     const parts = formatter.formatToParts(date);
-                     const offsetPart = parts.find(part => part.type === 'timeZoneName');
-                     if (offsetPart && offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/)) {
-                         const match = offsetPart.value.match(/GMT([+-]\d{1,2}):?(\d{2})?/);
-                         const hours = parseInt(match[1]);
-                         const minutes = parseInt(match[2] || '0');
-                         return hours + (minutes / 60) * (hours >= 0 ? 1 : -1);
+                     
+                     const janOffset = getTimezoneOffset(jan1, timezone);
+                     const julOffset = getTimezoneOffset(jul1, timezone);
+                     const nowOffset = getTimezoneOffset(now, timezone);
+                     
+                     // 使用标准时间偏移量（通常是冬季时间，即较小的偏移量）
+                     const standardOffset = Math.min(janOffset, julOffset);
+                     
+                     let dstIndicator = '';
+                     if (Math.abs(janOffset - julOffset) > 0) {
+                         // 该时区有夏令时
+                         if (nowOffset === Math.max(janOffset, julOffset)) {
+                             dstIndicator = ` (${t.isDst})`;
+                         } else {
+                             dstIndicator = '';
+                         }
                      }
-                     // 备用方法
-                     const utcTime = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
-                     const tzTime = new Date(utcTime.toLocaleString('en-US', {timeZone: actualTz}));
-                     return (tzTime.getTime() - utcTime.getTime()) / (1000 * 60 * 60);
+                     
+                     // 格式化UTC偏移量显示（使用标准时间偏移量）
+                     const offsetHours = Math.floor(Math.abs(standardOffset));
+                     const offsetMinutes = Math.round((Math.abs(standardOffset) - offsetHours) * 60);
+                     const offsetSign = standardOffset >= 0 ? '+' : '-';
+                     const offsetDisplay = `(${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')})`;
+                     
+                     comparisonHTML += `<th>${offsetDisplay} ${timezoneName}${dstIndicator}</th>`;
+                 } catch (e) {
+                     // 如果时区无效，显示简化的表头
+                     comparisonHTML += `<th>Invalid: ${timezoneName}</th>`;
                  }
-                 
-                 const janOffset = getTimezoneOffset(jan1, timezone);
-                 const julOffset = getTimezoneOffset(jul1, timezone);
-                 const nowOffset = getTimezoneOffset(now, timezone);
-                 
-                 // 使用标准时间偏移量（通常是冬季时间，即较小的偏移量）
-                 const standardOffset = Math.min(janOffset, julOffset);
-                 
-                 let dstIndicator = '';
-                 if (Math.abs(janOffset - julOffset) > 0) {
-                     // 该时区有夏令时
-                     if (nowOffset === Math.max(janOffset, julOffset)) {
-                         dstIndicator = ` (${t.isDst})`;
-                     } else {
-                         dstIndicator = '';
-                     }
-                 }
-                 
-                 // 格式化UTC偏移量显示（使用标准时间偏移量）
-                 const offsetHours = Math.floor(Math.abs(standardOffset));
-                 const offsetMinutes = Math.round((Math.abs(standardOffset) - offsetHours) * 60);
-                 const offsetSign = standardOffset >= 0 ? '+' : '-';
-                 const offsetDisplay = `(${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')})`;
-                 
-                 comparisonHTML += `<th>${offsetDisplay} ${timezoneName}${dstIndicator}</th>`;
              });
             
             comparisonHTML += `
@@ -1647,25 +1652,30 @@
                 // 各时区时间列
                 selectedTimezones.forEach(timezone => {
                     const actualTimezone = getActualTimezone(timezone);
-                    const timeString = currentTime.toLocaleTimeString('zh-CN', {
-                        timeZone: actualTimezone,
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                    });
-                    
-                    const dateInfo = currentTime.toLocaleDateString('zh-CN', {
-                        timeZone: actualTimezone,
-                        weekday: 'short'
-                    });
-                    
-                    // 获取该时区的本地小时数来判断是否为工作时间
-                    const timezoneDate = new Date(currentTime.toLocaleString('en-US', { timeZone: actualTimezone }));
-                    const timezoneHour = timezoneDate.getHours();
-                    const timezoneIsWorkingHours = timezoneHour >= 8 && timezoneHour < 18;
-                    const timezoneCellClass = timezoneIsWorkingHours ? 'working-hours' : '';
-                    
-                    comparisonHTML += `<td class="${timezoneCellClass}"><div class="time-display">${dateInfo} ${timeString}</div></td>`;
+                    try {
+                        const timeString = currentTime.toLocaleTimeString('zh-CN', {
+                            timeZone: actualTimezone,
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                        });
+                        
+                        const dateInfo = currentTime.toLocaleDateString('zh-CN', {
+                            timeZone: actualTimezone,
+                            weekday: 'short'
+                        });
+                        
+                        // 获取该时区的本地小时数来判断是否为工作时间
+                        const timezoneDate = new Date(currentTime.toLocaleString('en-US', { timeZone: actualTimezone }));
+                        const timezoneHour = timezoneDate.getHours();
+                        const timezoneIsWorkingHours = timezoneHour >= 8 && timezoneHour < 18;
+                        const timezoneCellClass = timezoneIsWorkingHours ? 'working-hours' : '';
+                        
+                        comparisonHTML += `<td class="${timezoneCellClass}"><div class="time-display">${dateInfo} ${timeString}</div></td>`;
+                    } catch (e) {
+                        // 如果时区无效，显示错误信息
+                        comparisonHTML += `<td><div class="time-display">Invalid timezone: ${timezone}</div></td>`;
+                    }
                 });
                 
                 comparisonHTML += `</tr>`;
